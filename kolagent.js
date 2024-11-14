@@ -66,30 +66,42 @@ async function getTokenTicker(contractAddress) {
   }
 }
 
-// Function to generate a message using OpenAI
+// Function to generate a message using OpenAI with retry logic
 async function generateShillMessage(contractAddress) {
   try {
-    // Fetch the token ticker from Dexscreener
     const ticker = await getTokenTicker(contractAddress);
-
-    // Construct the prompt, including the ticker if available
     const prompt = `
       Write a promotional message for a memecoin with contract address ${contractAddress}.
       ${ticker ? `The token symbol is ${ticker}.` : ""}
       Do not mention low fees and fast transactions. Use emojis which fit to the ticker. Keep the message short and concise. Use a tone suitable for crypto enthusiasts. 
     `;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 100,
-    });
+    let retries = 3;
+    let delay = 2000;
 
-    const shillMessage = response.choices[0].message.content.trim();
-    console.log("Generated Shill Message:", shillMessage);
+    while (retries > 0) {
+      try {
+        const response = await openai.chat.completions.create({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 100,
+        });
 
-    // Post the message on Twitter
-    await postOnTwitter(shillMessage);
+        const shillMessage = response.choices[0].message.content.trim();
+        console.log("Generated Shill Message:", shillMessage);
+
+        await postOnTwitter(shillMessage);
+        break; // Exit the loop on success
+      } catch (error) {
+        if (error.response && error.response.status === 429 && retries > 0) {
+          console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retries--;
+        } else {
+          throw error; // Throw other errors or if retries are exhausted
+        }
+      }
+    }
   } catch (error) {
     console.error("Error generating shill message:", error.message);
   }
