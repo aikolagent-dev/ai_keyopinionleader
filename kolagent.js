@@ -19,6 +19,9 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 });
 
+// You can verify the authentication by logging the client type
+console.log('Client type:', twitterClient.readWrite ? 'ReadWrite' : 'ReadOnly');
+
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
   try {
@@ -119,13 +122,19 @@ async function generateShillMessage(contractAddress) {
   }
 }
 
-// Function to post message on Twitter using API v2
+// Function to post message on Twitter using API v1.1
 async function postOnTwitter(message) {
   try {
     const { data: createdTweet } = await twitterClient.v1.tweet(message);
     console.log("Shill message posted on Twitter:", createdTweet);
   } catch (error) {
     console.error("Error posting on Twitter:", error.message);
+    console.error("Full error:", {
+      message: error.message,
+      code: error.code,
+      data: error.data,
+      stack: error.stack
+    });
   }
 }
 
