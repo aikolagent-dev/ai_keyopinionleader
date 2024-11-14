@@ -108,5 +108,6 @@ async function postOnTwitter(message) {
   }
 }
 
+// Setting the port to use Heroku's dynamic port or default to 3000 for local development
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
