@@ -12,7 +12,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+const twitterClient = new TwitterApi({
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+});
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
@@ -89,7 +94,7 @@ async function generateShillMessage(contractAddress) {
     while (retries > 0) {
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o',
+          model: 'gpt-4',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 100,
         });
