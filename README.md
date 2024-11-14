@@ -1,6 +1,6 @@
 ## Disclaimer
 
-This project, **AI_KOL_AGENT**, is designed for educational and informational purposes only and is not intended
+This project, **kolopinionleader.exe**, is designed for educational and informational purposes only and is not intended
 to promote or endorse any specific cryptocurrency, token, or financial product. 
 The generated "shill" messages are created automatically by AI and should not be construed as financial advice 
 or investment recommendations.
