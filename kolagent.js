@@ -42,8 +42,8 @@ app.post('/webhook', async (req, res) => {
 async function generateShillMessage(contractAddress) {
   try {
     const prompt = `
-      Write a promotional message for a Solana token with the contract address ${contractAddress}.
-      Highlight why this token could be valuable.
+      Write a promotional message for a Solana memecoin with "CA: ${contractAddress}".
+      Do not mention low fees and fast transactions. Avoid using animal emojis. Keep the message short and concise. Use a tone suitable for crypto enthusiasts. 
     `;
 
     const response = await openai.chat.completions.create({
