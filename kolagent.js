@@ -122,7 +122,7 @@ async function generateShillMessage(contractAddress) {
 // Function to post message on Twitter using API v2
 async function postOnTwitter(message) {
   try {
-    const { data: createdTweet } = await twitterClient.v2.tweet(message);
+    const { data: createdTweet } = await twitterClient.v1.tweet(message);
     console.log("Shill message posted on Twitter:", createdTweet);
   } catch (error) {
     console.error("Error posting on Twitter:", error.message);
