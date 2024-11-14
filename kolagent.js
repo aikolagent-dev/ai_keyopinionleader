@@ -57,7 +57,7 @@ async function getTokenTicker(contractAddress) {
   }
 }
 
-// Function to generate a message using OpenAI with random prompt selection
+// Function to generate a random shill message
 async function generateShillMessage(contractAddress) {
   try {
     const ticker = await getTokenTicker(contractAddress);
@@ -68,13 +68,13 @@ async function generateShillMessage(contractAddress) {
        ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto, using upbeat language and fun emojis. Keep the message under 280 characters. Use one hashtag with the token symbol.`,
 
       `Create a provocative message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Be direct: "You missed all the major launches and are at a loss—are you really gonna miss this one too?" Use a bold tone to urge them to take action now. Keep the message concise, with one hashtag for the token symbol.`,
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Be direct, for example "You missed all the major launches and are at a loss—are you really gonna miss this one too?" Use a bold tone to urge them to take action now. Keep the message concise, with one hashtag for the token symbol.`,
 
       `Write a supportive and welcoming message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone to make readers feel like they're joining an exciting community. Highlight the potential without heavy pressure. Keep it short and positive, with one hashtag for the token symbol.`,
 
       `Draft a mysterious and exclusive message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Make it sound like a hidden gem only a select few know about. Use a cryptic tone to spark curiosity. Keep it concise and add just one hashtag for the token symbol.`,
+       ${ticker ? `The token is ${ticker}.` : ""} Make it sound like a hidden gem only a select few know about. Use a cryptic tone to spark curiosity. Keep it concise (under 260 characters) and add just one hashtag for the token symbol.`,
       
       `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
        The ticker is ${ticker}. Use a straightforward tone to share what makes this token unique and why people should check it out. Keep it under 280 characters with one hashtag, which should be the token symbol.`
@@ -124,6 +124,5 @@ async function postOnTwitter(message) {
   }
 }
 
-// Setting the port to use Heroku's dynamic port or default to 3000 for local development
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
