@@ -12,33 +12,25 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_APP_KEY,
-  appSecret: process.env.TWITTER_APP_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_SECRET,
-});
+const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
   try {
     const data = req.body;
-    console.log("Incoming webhook data:", JSON.stringify(data, null, 2)); // Log the incoming webhook data for debugging
+    console.log("Incoming webhook data:", JSON.stringify(data, null, 2));
 
-    // Check if tokenTransfers data is available
     if (data[0]?.tokenTransfers && data[0].tokenTransfers.length > 0) {
-      // Get the last transfer in the array
       const lastTransfer = data[0].tokenTransfers[data[0].tokenTransfers.length - 1];
       const contractAddress = lastTransfer.mint;
       console.log(`Token Transfer Detected for token: ${contractAddress}`);
 
-      // Generate and post a shill message for the last transfer only
       await generateShillMessage(contractAddress);
     } else {
       console.log("No token transfers found in this transaction.");
     }
 
-    res.sendStatus(200); // Acknowledge receipt of the webhook
+    res.sendStatus(200);
   } catch (error) {
     console.error("Error handling webhook:", error);
     res.sendStatus(500);
@@ -51,9 +43,8 @@ async function getTokenTicker(contractAddress) {
     const url = `https://api.dexscreener.io/latest/dex/tokens/${contractAddress}`;
     const response = await axios.get(url);
 
-    // Check if token data is available and extract the ticker (symbol)
     if (response.data && response.data.pairs && response.data.pairs.length > 0) {
-      const ticker = response.data.pairs[0].baseToken.symbol; // Get ticker symbol from the first pair
+      const ticker = response.data.pairs[0].baseToken.symbol;
       console.log(`Fetched Ticker: ${ticker}`);
       return ticker;
     } else {
@@ -73,7 +64,7 @@ async function generateShillMessage(contractAddress) {
     const prompt = `
       Write a promotional message for a memecoin with contract address ${contractAddress}.
       ${ticker ? `The token symbol is ${ticker}.` : ""}
-      Do not mention low fees and fast transactions. Use emojis which fit to the ticker. Keep the message short and concise. Use a tone suitable for crypto enthusiasts. 
+      Do not mention low fees and fast transactions. Use emojis which fit the ticker. Keep the message short and concise. Use a tone suitable for crypto enthusiasts. 
     `;
 
     let retries = 3;
@@ -91,14 +82,14 @@ async function generateShillMessage(contractAddress) {
         console.log("Generated Shill Message:", shillMessage);
 
         await postOnTwitter(shillMessage);
-        break; // Exit the loop on success
+        break;
       } catch (error) {
         if (error.response && error.response.status === 429 && retries > 0) {
           console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           retries--;
         } else {
-          throw error; // Throw other errors or if retries are exhausted
+          throw error;
         }
       }
     }
@@ -107,11 +98,11 @@ async function generateShillMessage(contractAddress) {
   }
 }
 
-// Function to post message on Twitter
+// Function to post message on Twitter using API v2
 async function postOnTwitter(message) {
   try {
-    await twitterClient.v1.tweet(message);
-    console.log("Shill message posted on Twitter!");
+    const { data: createdTweet } = await twitterClient.v2.tweet(message);
+    console.log("Shill message posted on Twitter:", createdTweet);
   } catch (error) {
     console.error("Error posting on Twitter:", error.message);
   }
