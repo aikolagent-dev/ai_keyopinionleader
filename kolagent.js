@@ -21,22 +21,28 @@ const twitterClient = new TwitterApi({
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
-  const data = req.body;
+  try {
+    const data = req.body;
+    console.log("Incoming webhook data:", JSON.stringify(data, null, 2)); // Log the incoming webhook data for debugging
 
-  // Check if tokenTransfers data is available
-  if (data[0]?.tokenTransfers && data[0].tokenTransfers.length > 0) {
-    // Get the last transfer in the array
-    const lastTransfer = data[0].tokenTransfers[data[0].tokenTransfers.length - 1];
-    const contractAddress = lastTransfer.mint;
-    console.log(`Token Transfer Detected for token: ${contractAddress}`);
+    // Check if tokenTransfers data is available
+    if (data[0]?.tokenTransfers && data[0].tokenTransfers.length > 0) {
+      // Get the last transfer in the array
+      const lastTransfer = data[0].tokenTransfers[data[0].tokenTransfers.length - 1];
+      const contractAddress = lastTransfer.mint;
+      console.log(`Token Transfer Detected for token: ${contractAddress}`);
 
-    // Generate and post a shill message for the last transfer only
-    await generateShillMessage(contractAddress);
-  } else {
-    console.log("No token transfers found in this transaction.");
+      // Generate and post a shill message for the last transfer only
+      await generateShillMessage(contractAddress);
+    } else {
+      console.log("No token transfers found in this transaction.");
+    }
+
+    res.sendStatus(200); // Acknowledge receipt of the webhook
+  } catch (error) {
+    console.error("Error handling webhook:", error);
+    res.sendStatus(500);
   }
-
-  res.sendStatus(200); // Acknowledge receipt of the webhook
 });
 
 // Function to fetch the token ticker using Dexscreener API
@@ -55,7 +61,7 @@ async function getTokenTicker(contractAddress) {
       return null;
     }
   } catch (error) {
-    console.error(`Error fetching token ticker for contract ${contractAddress}:`, error);
+    console.error(`Error fetching token ticker for contract ${contractAddress}:`, error.message);
     return null;
   }
 }
@@ -85,7 +91,7 @@ async function generateShillMessage(contractAddress) {
     // Post the message on Twitter
     await postOnTwitter(shillMessage);
   } catch (error) {
-    console.error("Error generating shill message:", error);
+    console.error("Error generating shill message:", error.message);
   }
 }
 
@@ -95,7 +101,7 @@ async function postOnTwitter(message) {
     await twitterClient.v1.tweet(message);
     console.log("Shill message posted on Twitter!");
   } catch (error) {
-    console.error("Error posting on Twitter:", error);
+    console.error("Error posting on Twitter:", error.message);
   }
 }
 
