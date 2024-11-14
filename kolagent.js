@@ -62,7 +62,7 @@ async function generateShillMessage(contractAddress) {
   try {
     const ticker = await getTokenTicker(contractAddress);
     const prompt = `
-      Write a promotional message for a memecoin with contract address ${contractAddress}.
+      In under 280 characters, write a promotional message for a memecoin with contract address ${contractAddress}.
       ${ticker ? `The token symbol is ${ticker}.` : ""}
       Do not mention low fees and fast transactions. Use emojis which fit the ticker. Keep the message short and concise. Use a tone suitable for crypto enthusiasts. 
     `;
