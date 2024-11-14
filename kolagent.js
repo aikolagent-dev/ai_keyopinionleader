@@ -7,18 +7,13 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// Initialize OpenAI client
+// Initialize OpenAI and Twitter clients
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with OAuth 1.0a
-const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_CONSUMER_KEY,
-  appSecret: process.env.TWITTER_CONSUMER_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-});
+// Initialize Twitter client with Bearer Token
+const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
@@ -79,7 +74,7 @@ async function generateShillMessage(contractAddress) {
     while (retries > 0) {
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 100,
         });
@@ -88,7 +83,7 @@ async function generateShillMessage(contractAddress) {
         console.log("Generated Shill Message:", shillMessage);
 
         await postOnTwitter(shillMessage);
-        break; // Exit the loop on success
+        break;
       } catch (error) {
         if (error.response && error.response.status === 429 && retries > 0) {
           console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
@@ -104,10 +99,10 @@ async function generateShillMessage(contractAddress) {
   }
 }
 
-// Function to post message on Twitter using OAuth 1.0a
+// Function to post message on Twitter using API v2
 async function postOnTwitter(message) {
   try {
-    const { data: createdTweet } = await twitterClient.v1.tweet(message);
+    const { data: createdTweet } = await twitterClient.v2.tweet(message);
     console.log("Shill message posted on Twitter:", createdTweet);
   } catch (error) {
     console.error("Error posting on Twitter:", error.message);
