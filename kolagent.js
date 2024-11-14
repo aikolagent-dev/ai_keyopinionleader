@@ -7,12 +7,18 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// Initialize OpenAI and Twitter clients
+// Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+// Initialize Twitter client with OAuth 1.0a
+const twitterClient = new TwitterApi({
+  appKey: process.env.TWITTER_CONSUMER_KEY,
+  appSecret: process.env.TWITTER_CONSUMER_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+});
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
@@ -82,7 +88,7 @@ async function generateShillMessage(contractAddress) {
         console.log("Generated Shill Message:", shillMessage);
 
         await postOnTwitter(shillMessage);
-        break;
+        break; // Exit the loop on success
       } catch (error) {
         if (error.response && error.response.status === 429 && retries > 0) {
           console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
@@ -98,10 +104,10 @@ async function generateShillMessage(contractAddress) {
   }
 }
 
-// Function to post message on Twitter using API v2
+// Function to post message on Twitter using OAuth 1.0a
 async function postOnTwitter(message) {
   try {
-    const { data: createdTweet } = await twitterClient.v2.tweet(message);
+    const { data: createdTweet } = await twitterClient.v1.tweet(message);
     console.log("Shill message posted on Twitter:", createdTweet);
   } catch (error) {
     console.error("Error posting on Twitter:", error.message);
