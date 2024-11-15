@@ -13,15 +13,18 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter.js client
-const twitterClient = new Client({
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-});
+const twitterClient = new Client();
 
 // Test Twitter.js initialization
 (async () => {
   try {
     console.log('Initializing Twitter client...');
-    await twitterClient.users.findUserByUsername('TwitterDev'); // Test API connection
+    await twitterClient.login({
+      consumerKey: process.env.TWITTER_API_KEY,
+      consumerSecret: process.env.TWITTER_API_SECRET,
+      accessToken: process.env.TWITTER_ACCESS_TOKEN,
+      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+    });
     console.log('Twitter client initialized successfully.');
   } catch (error) {
     console.error('Error initializing Twitter client:', error.message);
