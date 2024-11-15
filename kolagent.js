@@ -14,6 +14,19 @@ const openai = new OpenAI({
 
 // Initialize Twitter client with environment variables
 const credentials = {
+  bearerToken: process.env.TWITTER_BEARER_TOKEN
+};
+
+// Log the actual values (but mask most of them for security)
+console.log('Raw credentials check:', {
+  bearerToken: credentials.bearerToken ? `${credentials.bearerToken.slice(0,4)}...` : 'missing'
+});
+
+const twitterClient = new Client({
+  events: true,
+  plugins: ['v2.tweet'],
+  version: '2',
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
   consumer: {
     key: process.env.TWITTER_API_KEY,
     secret: process.env.TWITTER_API_SECRET
@@ -22,28 +35,13 @@ const credentials = {
     key: process.env.TWITTER_ACCESS_TOKEN,
     secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
   }
-};
-
-// Log the actual values (but mask most of them for security)
-console.log('Raw credentials check:', {
-  consumerKey: credentials.consumer.key ? `${credentials.consumer.key.slice(0,4)}...` : 'missing',
-  consumerSecret: credentials.consumer.secret ? `${credentials.consumer.secret.slice(0,4)}...` : 'missing',
-  tokenKey: credentials.token.key ? `${credentials.token.key.slice(0,4)}...` : 'missing',
-  tokenSecret: credentials.token.secret ? `${credentials.token.secret.slice(0,4)}...` : 'missing'
-});
-
-const twitterClient = new Client({
-  events: true,
-  plugins: ['v2.tweet', 'v2.user'],
-  version: '2',
-  credentials: credentials
 });
 
 // Add debug logging for the client itself
 console.log('Twitter client check:', {
-  hasCredentials: !!twitterClient.credentials,
-  hasConsumer: !!twitterClient.credentials?.consumer,
-  hasToken: !!twitterClient.credentials?.token,
+  hasBearerToken: !!twitterClient.bearerToken,
+  hasConsumer: !!twitterClient.consumer,
+  hasToken: !!twitterClient.token,
   plugins: twitterClient.plugins,
   version: twitterClient.version
 });
