@@ -38,8 +38,10 @@ let twitterClient;
     });
 
     // Test the client with a simple API call
-    await twitterClient.users.fetchMe();
+    const testTweet = await twitterClient.tweets.create({ text: 'Test tweet' });
     console.log('Twitter client successfully authenticated');
+    // Delete the test tweet
+    await twitterClient.tweets.destroy(testTweet.id);
   } catch (error) {
     console.error('Failed to initialize Twitter client:', {
       name: error.name,
