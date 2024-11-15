@@ -19,7 +19,7 @@
     "dev": "nodemon kolagent.js"
   },
   "engines": {
-    "node": "20.x"
+    "node": "18.x"
   },
   "keywords": [],
   "author": "ai-kolagent-dev",
