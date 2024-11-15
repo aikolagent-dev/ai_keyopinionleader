@@ -1,52 +1,44 @@
 require('dotenv').config();
 const express = require('express');
-const { Client } = require('twitter.js');
+const { TwitterApi } = require('twitter-api-v2');
 const OpenAI = require('openai');
 const axios = require('axios');
-const { TwitterApi } = require('twitter-api-v2');
 
 const app = express();
 app.use(express.json());
 
 // Initialize OpenAI client
+if (!process.env.OPENAI_API_KEY) {
+  console.error('Missing OpenAI API Key. Check your environment variables.');
+  process.exit(1);
+}
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with environment variables
-const credentials = {
-  apiKey: process.env.TWITTER_API_KEY,
-  apiSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-};
+// Debug log environment variables
+console.log('Environment Variables:', {
+  TWITTER_API_KEY: !!process.env.TWITTER_API_KEY,
+  TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET,
+  TWITTER_ACCESS_TOKEN: !!process.env.TWITTER_ACCESS_TOKEN,
+  TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+});
 
-// Create client
+// Initialize Twitter client with environment variables
 let twitterClient;
 try {
-  twitterClient = new Client();
-  
-  // Login with OAuth 1.0a credentials
-  twitterClient.login({
-    consumerKey: credentials.apiKey,
-    consumerSecret: credentials.apiSecret,
-    accessToken: credentials.accessToken,
-    accessSecret: credentials.accessSecret
+  twitterClient = new TwitterApi({
+    appKey: process.env.TWITTER_API_KEY,
+    appSecret: process.env.TWITTER_API_SECRET,
+    accessToken: process.env.TWITTER_ACCESS_TOKEN,
+    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   });
-
-  console.log('Twitter client initialized successfully');
+  console.log('Twitter client initialized successfully.');
 } catch (error) {
-  console.error('Failed to create Twitter client:', error);
+  console.error('Failed to initialize Twitter client:', error.message);
   process.exit(1);
 }
-
-// Debug logging
-console.log('Twitter credentials loaded:', {
-  hasAppKey: !!process.env.TWITTER_API_KEY,
-  hasAppSecret: !!process.env.TWITTER_API_SECRET,
-  hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-  hasAccessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
-});
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -58,14 +50,28 @@ const postTweet = async (tweetContent, hashtags) => {
     return `${content}\n\n${hashtagString}`.trim();
   };
 
+  const postWithRetry = async (tweet, attempt = 1) => {
+    try {
+      console.log(`Attempt ${attempt}: Posting tweet...`);
+      const response = await twitterClient.v1.tweet(tweet);
+      console.log('Tweet posted successfully:', response);
+      return response.id;
+    } catch (error) {
+      console.error(`Error in attempt ${attempt}:`, error.message);
+      if (attempt < MAX_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
+        return postWithRetry(tweet, attempt + 1);
+      }
+      throw error;
+    }
+  };
+
   try {
     const fullTweet = formatTweet(tweetContent, hashtags);
     console.log(`Attempting to post tweet: "${fullTweet}"`);
-    const response = await twitterClient.tweets.create({ text: fullTweet });
-    console.log('Tweet posted successfully:', response);
-    return response.id;
+    return await postWithRetry(fullTweet);
   } catch (error) {
-    console.error('Error posting tweet:', error);
+    console.error('Error in postTweet:', error.message);
     throw error;
   }
 };
