@@ -17,18 +17,18 @@ const twitterClient = new Client({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_SECRET,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   bearerToken: process.env.TWITTER_BEARER_TOKEN,
   clientId: process.env.TWITTER_CLIENT_ID,
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-// Add debug logging for Twitter credentials
+// Add debug logging for credentials
 console.log('Twitter credentials loaded:', {
   hasAppKey: !!process.env.TWITTER_API_KEY,
   hasAppSecret: !!process.env.TWITTER_API_SECRET,
   hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-  hasAccessSecret: !!process.env.TWITTER_ACCESS_SECRET,
+  hasAccessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
   hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
   hasClientId: !!process.env.TWITTER_CLIENT_ID,
   hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
@@ -125,20 +125,14 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
+      `Write a very short, enthusiastic promotional message (maximum 200 characters) for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token symbol is ${ticker}.` : ""} Include one hashtag.`,
       
-      `Create a provocative message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
+      `Create a brief, provocative message (under 200 characters) for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Include one hashtag.`,
       
-      `Write a supportive message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
-      
-      `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
-      
-      `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
-       The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
+      `Write a concise, supportive message (max 200 characters) for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Known as ${ticker}.` : ""} Include one hashtag.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
@@ -150,11 +144,29 @@ async function generateShillMessage(contractAddress) {
       try {
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
-          messages: [{ role: 'user', content: prompt }],
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You must generate messages that are under 200 characters. Be very concise.' 
+            },
+            { 
+              role: 'user', 
+              content: prompt 
+            }
+          ],
           max_tokens: 100,
         });
 
-        const shillMessage = response.choices[0].message.content.trim();
+        let shillMessage = response.choices[0].message.content.trim();
+        
+        // Truncate message if it's still too long
+        if (shillMessage.length > 200) {
+          const lastPeriodIndex = shillMessage.lastIndexOf('.', 200);
+          const lastSpaceIndex = shillMessage.lastIndexOf(' ', 200);
+          const truncateIndex = Math.max(lastPeriodIndex, lastSpaceIndex);
+          shillMessage = truncateIndex > 0 ? shillMessage.substring(0, truncateIndex) : shillMessage.substring(0, 200);
+        }
+
         console.log("Generated Shill Message:", shillMessage);
 
         await postTweet(shillMessage, [ticker || "Crypto"]);
