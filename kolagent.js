@@ -12,27 +12,29 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Add detailed credential logging
-console.log('Raw Twitter credentials:', {
-  appKey: typeof process.env.TWITTER_API_KEY === 'string' ? 'present' : 'missing',
-  appSecret: typeof process.env.TWITTER_API_SECRET === 'string' ? 'present' : 'missing',
-  accessToken: typeof process.env.TWITTER_ACCESS_TOKEN === 'string' ? 'present' : 'missing',
-  accessSecret: typeof process.env.TWITTER_ACCESS_TOKEN_SECRET === 'string' ? 'present' : 'missing',
-  lengths: {
-    appKey: process.env.TWITTER_API_KEY?.length || 0,
-    appSecret: process.env.TWITTER_API_SECRET?.length || 0,
-    accessToken: process.env.TWITTER_ACCESS_TOKEN?.length || 0,
-    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.length || 0
-  }
-});
-
 // Initialize Twitter client with environment variables
-const twitterClient = new Client({
+const credentials = {
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+};
+
+// Debug log raw credentials (with length only)
+console.log('Raw Twitter credentials:', {
+  appKey: credentials.appKey ? 'present' : 'missing',
+  appSecret: credentials.appSecret ? 'present' : 'missing',
+  accessToken: credentials.accessToken ? 'present' : 'missing',
+  accessSecret: credentials.accessSecret ? 'present' : 'missing',
+  lengths: {
+    appKey: credentials.appKey?.length || 0,
+    appSecret: credentials.appSecret?.length || 0,
+    accessToken: credentials.accessToken?.length || 0,
+    accessSecret: credentials.accessSecret?.length || 0
+  }
 });
+
+const twitterClient = new Client(credentials);
 
 // Initialize the client before use
 (async () => {
@@ -42,28 +44,26 @@ const twitterClient = new Client({
       hasClient: !!twitterClient,
       hasOptions: !!twitterClient?.options,
       credentials: {
-        hasAppKey: !!process.env.TWITTER_API_KEY,
-        hasAppSecret: !!process.env.TWITTER_API_SECRET,
-        hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-        hasAccessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
+        hasAppKey: !!credentials.appKey,
+        hasAppSecret: !!credentials.appSecret,
+        hasAccessToken: !!credentials.accessToken,
+        hasAccessSecret: !!credentials.accessSecret
       }
     });
 
-    // Login with the correct parameters
-    await twitterClient.login({
-      appKey: process.env.TWITTER_API_KEY,
-      appSecret: process.env.TWITTER_API_SECRET,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN,
-      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-    });
+    // Login with the same credentials object
+    await twitterClient.login(credentials);
     
     console.log('Twitter client successfully logged in');
   } catch (error) {
-    console.error('Failed to initialize Twitter client:', {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      stack: error.stack
+    console.error('Failed to initialize Twitter client:', error);
+    
+    // Add additional debug logging
+    console.error('Client state:', {
+      hasClient: !!twitterClient,
+      hasOptions: !!twitterClient?.options,
+      credentialsPresent: !!credentials,
+      credentialKeys: Object.keys(credentials)
     });
   }
 })();
