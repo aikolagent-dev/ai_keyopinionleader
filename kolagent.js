@@ -14,11 +14,13 @@ const openai = new OpenAI({
 
 // Initialize Twitter client with environment variables
 const twitterClient = new Client({
-  console.log("TWITTER_API_KEY:", process.env.TWITTER_API_KEY);
-  console.log("TWITTER_API_SECRET:", process.env.TWITTER_API_SECRET);
-  console.log("TWITTER_ACCESS_TOKEN:", process.env.TWITTER_ACCESS_TOKEN);
-  console.log("TWITTER_ACCESS_SECRET:", process.env.TWITTER_ACCESS_SECRET);
-  console.log("TWITTER_BEARER_TOKEN:", process.env.TWITTER_BEARER_TOKEN);
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
 const MAX_RETRIES = 3;
@@ -136,7 +138,7 @@ async function generateShillMessage(contractAddress) {
     while (retries > 0) {
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o',
+          model: 'gpt-4',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 100,
         });
