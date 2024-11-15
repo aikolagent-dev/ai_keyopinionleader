@@ -37,10 +37,34 @@ const twitterClient = new Client({
 // Initialize the client before use
 (async () => {
   try {
-    await twitterClient.login();
+    // Debug log the client configuration
+    console.log('Twitter client configuration:', {
+      hasClient: !!twitterClient,
+      hasOptions: !!twitterClient?.options,
+      credentials: {
+        hasAppKey: !!process.env.TWITTER_API_KEY,
+        hasAppSecret: !!process.env.TWITTER_API_SECRET,
+        hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
+        hasAccessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
+      }
+    });
+
+    // Login with the correct parameters
+    await twitterClient.login({
+      appKey: process.env.TWITTER_API_KEY,
+      appSecret: process.env.TWITTER_API_SECRET,
+      accessToken: process.env.TWITTER_ACCESS_TOKEN,
+      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+    });
+    
     console.log('Twitter client successfully logged in');
   } catch (error) {
-    console.error('Failed to initialize Twitter client:', error);
+    console.error('Failed to initialize Twitter client:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
   }
 })();
 
