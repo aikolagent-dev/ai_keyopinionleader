@@ -23,7 +23,7 @@ const twitterClient = new Client({
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-// Add debug logging
+// Add debug logging for Twitter credentials
 console.log('Twitter credentials loaded:', {
   hasAppKey: !!process.env.TWITTER_API_KEY,
   hasAppSecret: !!process.env.TWITTER_API_SECRET,
