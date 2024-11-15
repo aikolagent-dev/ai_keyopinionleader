@@ -13,38 +13,27 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with environment variables
-const auth = {
+const twitterClient = new Client({
   apiKey: process.env.TWITTER_API_KEY,
   apiSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-  clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET
-};
+  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+});
 
-const twitterClient = new Client(auth);
-
-// Add debug logging for credentials
+// Log environment variables (safely)
 console.log('Environment variables check:', {
   apiKey: process.env.TWITTER_API_KEY?.substring(0,4) + '...',
   apiSecret: process.env.TWITTER_API_SECRET?.substring(0,4) + '...',
   accessToken: process.env.TWITTER_ACCESS_TOKEN?.substring(0,4) + '...',
-  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.substring(0,4) + '...',
-  bearerToken: process.env.TWITTER_BEARER_TOKEN?.substring(0,4) + '...',
-  clientId: process.env.TWITTER_CLIENT_ID?.substring(0,4) + '...',
-  clientSecret: process.env.TWITTER_CLIENT_SECRET?.substring(0,4) + '...'
+  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.substring(0,4) + '...'
 });
 
-// Log client initialization
-console.log('Twitter client initialized:', {
+// Log client state
+console.log('Twitter client state:', {
   hasApiKey: !!twitterClient.apiKey,
   hasApiSecret: !!twitterClient.apiSecret,
   hasAccessToken: !!twitterClient.accessToken,
-  hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
-  hasBearerToken: !!twitterClient.bearerToken,
-  hasClientId: !!twitterClient.clientId,
-  hasClientSecret: !!twitterClient.clientSecret
+  hasAccessTokenSecret: !!twitterClient.accessTokenSecret
 });
 
 const MAX_RETRIES = 3;
