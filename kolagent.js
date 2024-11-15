@@ -14,11 +14,17 @@ const openai = new OpenAI({
 
 // Initialize Twitter client with environment variables
 const credentials = {
-  appKey: process.env.TWITTER_API_KEY,
-  appSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  appKey: String(process.env.TWITTER_API_KEY || ''),
+  appSecret: String(process.env.TWITTER_API_SECRET || ''),
+  accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
+  accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
 };
+
+// Add validation before creating client
+if (!credentials.appKey || !credentials.appSecret || !credentials.accessToken || !credentials.accessSecret) {
+  console.error('Missing required Twitter credentials');
+  process.exit(1);
+}
 
 // Debug log raw credentials (with length only)
 console.log('Raw Twitter credentials:', {
@@ -34,7 +40,13 @@ console.log('Raw Twitter credentials:', {
   }
 });
 
-const twitterClient = new Client(credentials);
+// Create client with explicit string values
+const twitterClient = new Client({
+  appKey: String(credentials.appKey),
+  appSecret: String(credentials.appSecret),
+  accessToken: String(credentials.accessToken),
+  accessSecret: String(credentials.accessSecret),
+});
 
 // Initialize the client before use
 (async () => {
@@ -51,19 +63,13 @@ const twitterClient = new Client(credentials);
       }
     });
 
-    // Login with the same credentials object
-    await twitterClient.login(credentials);
-    
-    console.log('Twitter client successfully logged in');
+    // No need to call login() again since we passed credentials to constructor
+    console.log('Twitter client initialized');
   } catch (error) {
-    console.error('Failed to initialize Twitter client:', error);
-    
-    // Add additional debug logging
-    console.error('Client state:', {
-      hasClient: !!twitterClient,
-      hasOptions: !!twitterClient?.options,
-      credentialsPresent: !!credentials,
-      credentialKeys: Object.keys(credentials)
+    console.error('Failed to initialize Twitter client:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
     });
   }
 })();
