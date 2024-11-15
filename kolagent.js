@@ -12,50 +12,26 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Validate and convert credentials to strings
-const credentials = {
-  consumerKey: String(process.env.TWITTER_API_KEY || ''),
-  consumerSecret: String(process.env.TWITTER_API_SECRET || ''),
-  accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-  accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || '')
-};
-
-// Validate all credentials are present
-const missingCreds = Object.entries(credentials)
-  .filter(([key, value]) => !value || value === 'undefined')
-  .map(([key]) => key);
-
-if (missingCreds.length > 0) {
-  console.error('Missing Twitter credentials:', missingCreds);
-  throw new Error('Missing required Twitter credentials');
-}
-
-// Initialize Twitter client with validated credentials
-const twitterClient = new Client();
-
-try {
-  twitterClient.login(credentials);
-  console.log('Twitter client login successful');
-} catch (error) {
-  console.error('Twitter client login failed:', error);
-  throw error;
-}
-
-// Log environment variables (safely)
-console.log('Credentials check:', {
-  consumerKey: credentials.consumerKey.substring(0,4) + '...',
-  consumerSecret: credentials.consumerSecret.substring(0,4) + '...',
-  accessToken: credentials.accessToken.substring(0,4) + '...',
-  accessTokenSecret: credentials.accessTokenSecret.substring(0,4) + '...'
+// Initialize Twitter client with environment variables
+const twitterClient = new Client({
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-// Log client state
-console.log('Twitter client state:', {
-  hasConsumerKey: !!twitterClient.consumerKey,
-  hasConsumerSecret: !!twitterClient.consumerSecret,
-  hasAccessToken: !!twitterClient.accessToken,
-  hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
-  isLoggedIn: !!twitterClient.isLoggedIn
+// Add debug logging
+console.log('Twitter credentials loaded:', {
+  hasAppKey: !!process.env.TWITTER_API_KEY,
+  hasAppSecret: !!process.env.TWITTER_API_SECRET,
+  hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
+  hasAccessSecret: !!process.env.TWITTER_ACCESS_SECRET,
+  hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
+  hasClientId: !!process.env.TWITTER_CLIENT_ID,
+  hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
 });
 
 const MAX_RETRIES = 3;
