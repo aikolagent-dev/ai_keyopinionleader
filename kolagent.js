@@ -13,26 +13,29 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with environment variables
-const auth = {
-  appKey: process.env.TWITTER_API_KEY,
-  appSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-};
-
 const twitterClient = new Client({
-  ...auth,
-  plugins: ['v2.tweet', 'v2.user'],  // Explicitly enable tweet functionality
-  api_version: '2',  // Specify API version
+  events: true,  // Enable events
+  plugins: ['v2.tweet', 'v2.user'],  // Enable tweet functionality
+  version: '2',  // Use API v2
+  credentials: {
+    consumer: {
+      key: process.env.TWITTER_API_KEY,
+      secret: process.env.TWITTER_API_SECRET
+    },
+    token: {
+      key: process.env.TWITTER_ACCESS_TOKEN,
+      secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+    }
+  }
 });
 
 // Add more detailed debug logging
-console.log('Twitter client initialized with auth:', {
-  appKeyLength: auth.appKey?.length,
-  appSecretLength: auth.appSecret?.length,
-  accessTokenLength: auth.accessToken?.length,
-  accessSecretLength: auth.accessSecret?.length,
-  plugins: twitterClient.plugins  // Log enabled plugins
+console.log('Twitter client initialized with credentials:', {
+  hasConsumerKey: !!twitterClient.credentials?.consumer?.key,
+  hasConsumerSecret: !!twitterClient.credentials?.consumer?.secret,
+  hasTokenKey: !!twitterClient.credentials?.token?.key,
+  hasTokenSecret: !!twitterClient.credentials?.token?.secret,
+  plugins: twitterClient.plugins
 });
 
 const MAX_RETRIES = 3;
