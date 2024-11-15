@@ -4,6 +4,7 @@ import { Client } from 'twitter.js';
 import OpenAI from 'openai';
 import axios from 'axios';
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -25,16 +26,15 @@ const twitterClient = new Client({
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-
-// Add debug logging for Twitter credentials
+// Debug Twitter credentials loading
 console.log('Twitter credentials loaded:', {
-  hasAppKey: !!process.env.TWITTER_API_KEY,
-  hasAppSecret: !!process.env.TWITTER_API_SECRET,
-  hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-  hasAccessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
-  hasClientId: !!process.env.TWITTER_CLIENT_ID,
-  hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
+  appKey: !!process.env.TWITTER_API_KEY,
+  appSecret: !!process.env.TWITTER_API_SECRET,
+  accessToken: !!process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  bearerToken: !!process.env.TWITTER_BEARER_TOKEN,
+  clientId: !!process.env.TWITTER_CLIENT_ID,
+  clientSecret: !!process.env.TWITTER_CLIENT_SECRET,
 });
 
 const MAX_RETRIES = 3;
@@ -42,9 +42,6 @@ const RETRY_DELAY = 1000;
 
 // Function to post a tweet with retry logic
 const postTweet = async (tweetContent, hashtags) => {
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 1000;
-
   const formatTweet = (content, tags) => {
     const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
     return `${content}\n\n${hashtagString}`.trim();
@@ -78,7 +75,7 @@ const postTweet = async (tweetContent, hashtags) => {
     validateTweetContent(tweetContent, hashtags);
     const fullTweet = formatTweet(tweetContent, hashtags);
     const tweetId = await postWithRetry(fullTweet);
-    
+
     console.log('Tweet successfully queued for posting 📤');
     return tweetId;
   } catch (error) {
@@ -136,48 +133,20 @@ async function generateShillMessage(contractAddress) {
     const prompts = [
       `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
-
-      `Create a provocative message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
-
-      `Write a supportive message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
-
-      `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
-
-      `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
-       The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
     ];
 
-    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+    const prompt = prompts[0];
 
-    let retries = 3;
-    let delay = 2000;
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 100,
+    });
 
-    while (retries > 0) {
-      try {
-        const response = await openai.chat.completions.create({
-          model: 'gpt-4',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 100,
-        });
+    const shillMessage = response.choices[0].message.content.trim();
+    console.log("Generated Shill Message:", shillMessage);
 
-        const shillMessage = response.choices[0].message.content.trim();
-        console.log("Generated Shill Message:", shillMessage);
-
-        await postTweet(shillMessage, [ticker || "Crypto"]);
-        break;
-      } catch (error) {
-        if (error.response && error.response.status === 429 && retries > 0) {
-          console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          retries--;
-        } else {
-          throw error;
-        }
-      }
-    }
+    await postTweet(shillMessage, [ticker || "Crypto"]);
   } catch (error) {
     console.error("Error generating shill message:", error.message);
   }

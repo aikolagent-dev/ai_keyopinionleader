@@ -11,8 +11,15 @@
     "openai": "^4.72.0",
     "twitter.js": "^0.14.0"
   },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  },
   "scripts": {
-    "start": "node kolagent.js"
+    "start": "node kolagent.js",
+    "dev": "nodemon kolagent.js"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "keywords": [],
   "author": "ai-kolagent-dev",
