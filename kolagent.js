@@ -24,6 +24,7 @@ const twitterClient = new Client({
   bearerToken: process.env.TWITTER_BEARER_TOKEN,
   clientId: process.env.TWITTER_CLIENT_ID,
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
+  scopes: ['tweet.read', 'tweet.write', 'users.read']
 });
 
 // Debug Twitter credentials loading
@@ -60,8 +61,8 @@ const postTweet = async (tweetContent, hashtags) => {
 
   const postWithRetry = async (tweet, attempt = 1) => {
     try {
-      const response = await twitterClient.tweets.create({ text: tweet });
-      return response.id;
+      const response = await twitterClient.v2.tweet(tweet);
+      return response.data.id;
     } catch (error) {
       if (attempt < MAX_RETRIES) {
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
