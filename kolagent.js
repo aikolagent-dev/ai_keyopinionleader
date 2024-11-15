@@ -65,22 +65,27 @@ let twitterClient;
   }
 })();
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-
 // Function to post a tweet with retry logic
 const postTweet = async (tweetContent, hashtags) => {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000;
+
   const formatTweet = (content, tags) => {
     const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
     return `${content}\n\n${hashtagString}`.trim();
   };
 
   const validateTweetContent = (content, tags) => {
+    // Validate hashtag count
     if (tags.length > 1) {
       throw new Error('Tweet can only have one hashtag');
     }
+
+    // Calculate total length
     const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
     const fullTweetLength = content.length + (tags.length > 0 ? 2 : 0) + hashtagString.length;
+
+    // Validate length
     if (fullTweetLength > 280) {
       throw new Error(`Tweet exceeds character limit (${fullTweetLength}/280)`);
     }
@@ -88,11 +93,11 @@ const postTweet = async (tweetContent, hashtags) => {
 
   const postWithRetry = async (tweet, attempt = 1) => {
     try {
-      const response = await twitterClient.v2.tweet(tweet);
-      return response.data.id;
+      const response = await twitterClient.tweets.create({ text: tweet });
+      return response.id;
     } catch (error) {
       if (attempt < MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt)); // Exponential backoff
         return postWithRetry(tweet, attempt + 1);
       }
       throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
@@ -100,7 +105,10 @@ const postTweet = async (tweetContent, hashtags) => {
   };
 
   try {
+    // Validate content before formatting
     validateTweetContent(tweetContent, hashtags);
+
+    // Format and post tweet
     const fullTweet = formatTweet(tweetContent, hashtags);
     const tweetId = await postWithRetry(fullTweet);
 
