@@ -12,124 +12,47 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// First log the raw environment variables (safely)
-console.log('Raw Environment Check:', {
-  apiKey: process.env.TWITTER_API_KEY?.substring(0,4) + '...',
-  apiSecret: process.env.TWITTER_API_SECRET?.substring(0,4) + '...',
-  accessToken: process.env.TWITTER_ACCESS_TOKEN?.substring(0,4) + '...',
-  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.substring(0,4) + '...'
-});
-
-// Create credentials object
-const credentials = {
+// Initialize Twitter client (at the top level of your file)
+const twitterClient = new Client({
   apiKey: process.env.TWITTER_API_KEY,
   apiSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
   accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-};
-
-// Log the credentials object (safely)
-console.log('Credentials Object:', {
-  hasApiKey: !!credentials.apiKey,
-  apiKeyLength: credentials.apiKey?.length,
-  hasApiSecret: !!credentials.apiSecret,
-  apiSecretLength: credentials.apiSecret?.length,
-  hasAccessToken: !!credentials.accessToken,
-  accessTokenLength: credentials.accessToken?.length,
-  hasAccessTokenSecret: !!credentials.accessTokenSecret,
-  accessTokenSecretLength: credentials.accessTokenSecret?.length
 });
 
-// Initialize Twitter client with explicit credentials
-const twitterClient = new Client();
-twitterClient.apiKey = credentials.apiKey;
-twitterClient.apiSecret = credentials.apiSecret;
-twitterClient.accessToken = credentials.accessToken;
-twitterClient.accessTokenSecret = credentials.accessTokenSecret;
-
-// Log the final client state
-console.log('Final Client State:', {
+// Log initial client state
+console.log('Twitter Client Initialization:', {
   hasApiKey: !!twitterClient.apiKey,
   hasApiSecret: !!twitterClient.apiSecret,
   hasAccessToken: !!twitterClient.accessToken,
   hasAccessTokenSecret: !!twitterClient.accessTokenSecret
 });
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-
-// Function to post a tweet with retry logic
-const postTweet = async (tweetContent, hashtags) => {
-  const formatTweet = (content, tags) => {
-    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
-    return `${content}\n\n${hashtagString}`.trim();
-  };
-
-  const validateTweetContent = (content, tags) => {
-    if (tags.length > 1) {
-      throw new Error('Tweet can only have one hashtag');
-    }
-    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
-    const fullTweetLength = content.length + (tags.length > 0 ? 2 : 0) + hashtagString.length;
-    if (fullTweetLength > 280) {
-      throw new Error(`Tweet exceeds character limit (${fullTweetLength}/280)`);
-    }
-  };
-
-  const postWithRetry = async (tweet, attempt = 1) => {
-    try {
-      console.log(`Attempt ${attempt} to post tweet: "${tweet}"`);
-      const response = await twitterClient.tweets.create({ text: tweet });
-      console.log('Tweet posted successfully:', response);
-      return response.id;
-    } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
-      if (attempt < MAX_RETRIES) {
-        console.log(`Waiting ${RETRY_DELAY * attempt}ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
-        return postWithRetry(tweet, attempt + 1);
-      }
-      throw error;
-    }
-  };
+// Tweet posting function
+async function postTweet(message) {
+  console.log('Tweet attempt with credentials:', {
+    hasApiKey: !!twitterClient.apiKey,
+    hasApiSecret: !!twitterClient.apiSecret,
+    hasAccessToken: !!twitterClient.accessToken,
+    hasAccessTokenSecret: !!twitterClient.accessTokenSecret
+  });
 
   try {
-    validateTweetContent(tweetContent, hashtags);
-    const fullTweet = formatTweet(tweetContent, hashtags);
-    return await postWithRetry(fullTweet);
+    const result = await twitterClient.v2.tweet({
+      text: message
+    });
+    console.log('Tweet posted successfully:', result);
+    return result;
   } catch (error) {
-    console.error('Error in postTweet:', error.message);
+    console.error('Tweet error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      data: error.response?.data
+    });
     throw error;
   }
-};
-
-// Webhook endpoint to receive transaction data from Helius
-app.post('/webhook', async (req, res) => {
-  try {
-    const data = req.body;
-    console.log("Incoming webhook data:", JSON.stringify(data, null, 2));
-
-    if (data[0]?.tokenTransfers && data[0].tokenTransfers.length > 0) {
-      const lastTransfer = data[0].tokenTransfers[data[0].tokenTransfers.length - 1];
-      const contractAddress = lastTransfer.mint;
-      console.log(`Token Transfer Detected for token: ${contractAddress}`);
-
-      await generateShillMessage(contractAddress);
-    } else {
-      console.log("No token transfers found in this transaction.");
-    }
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.error("Error handling webhook:", error);
-    res.sendStatus(500);
-  }
-});
+}
 
 async function getTokenTicker(contractAddress) {
   try {
@@ -216,49 +139,78 @@ async function generateShillMessage(contractAddress) {
   }
 }
 
-// Test tweet function
-async function testTweet() {
-  console.log('Starting tweet test...');
-  
-  // First verify credentials
-  console.log('Credential check:', {
-    hasApiKey: !!twitterClient.apiKey,
-    keyLength: twitterClient.apiKey?.length,
-    hasApiSecret: !!twitterClient.apiSecret,
-    secretLength: twitterClient.apiSecret?.length,
-    hasAccessToken: !!twitterClient.accessToken,
-    tokenLength: twitterClient.accessToken?.length,
-    hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
-    secretTokenLength: twitterClient.accessTokenSecret?.length
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
+
+app.post('/webhook', async (req, res) => {
+  console.log('Webhook received:', {
+    timestamp: new Date().toISOString(),
+    bodyLength: JSON.stringify(req.body).length,
+    hasData: !!req.body
   });
 
   try {
-    const testMessage = `Test tweet ${new Date().toISOString()}`;
-    console.log('Attempting to post:', testMessage);
-    
-    const tweet = await postTweet(testMessage);
-    console.log('Test tweet successful:', {
-      id: tweet.id,
-      text: tweet.text,
-      createdAt: tweet.created_at
+    // Log the incoming data (safely)
+    console.log('Processing webhook data:', {
+      accountDataCount: req.body[0]?.accountData?.length,
+      firstAccount: req.body[0]?.accountData?.[0]?.account?.substring(0,8) + '...',
+      tokenChanges: req.body[0]?.accountData?.[0]?.tokenBalanceChanges
     });
-    return tweet;
+
+    // Generate shill message
+    const shillMessage = `Unleash the crypto beast! Invest in ${contractAddress}. Your ticket to the moon! #MoonTicketCrypto\n\n#Crypto`;
+    console.log('Generated message:', shillMessage);
+
+    // Log Twitter client state before posting
+    console.log('Twitter client state:', {
+      hasApiKey: !!twitterClient.apiKey,
+      hasApiSecret: !!twitterClient.apiSecret,
+      hasAccessToken: !!twitterClient.accessToken,
+      hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
+      clientInitialized: !!twitterClient
+    });
+
+    // Try to post tweet with retries
+    let attempt = 1;
+    const maxAttempts = 3;
+    
+    while (attempt <= maxAttempts) {
+      try {
+        console.log(`Tweet attempt ${attempt}/${maxAttempts}`);
+        const tweet = await twitterClient.v2.tweet({
+          text: shillMessage
+        });
+        console.log('Tweet posted successfully:', tweet);
+        break;
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, {
+          name: error.name,
+          message: error.message,
+          code: error.code,
+          response: error.response?.data,
+          stack: error.stack
+        });
+        
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+        
+        const delay = attempt * 1000; // Increasing delay between retries
+        console.log(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        attempt++;
+      }
+    }
+
+    res.status(200).send('OK');
   } catch (error) {
-    console.error('Test tweet failed with error:', {
+    console.error('Webhook handler error:', {
       name: error.name,
       message: error.message,
       code: error.code,
-      data: error.response?.data
+      stack: error.stack,
+      response: error.response?.data
     });
-    throw error;
+    res.status(500).send('Error processing webhook');
   }
-}
-
-// Run the test once when the server starts
-console.log('Running initial tweet test...');
-testTweet()
-  .then(() => console.log('Initial tweet test completed'))
-  .catch(error => console.error('Initial tweet test failed:', error.message));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
+});
