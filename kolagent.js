@@ -12,40 +12,43 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with all available credentials
-const twitterClient = new Client({
-  events: true,
-  plugins: ['v2.tweet'],
-  version: '2',
-  authentication: {
-    strategy: 'OAuth1UserContext',
-    oauth1: {
-      consumerKey: process.env.TWITTER_API_KEY,
-      consumerSecret: process.env.TWITTER_API_SECRET,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN,
-      accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-    },
-    oauth2: {
-      clientId: process.env.TWITTER_CLIENT_ID,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      bearerToken: process.env.TWITTER_BEARER_TOKEN
-    }
-  }
+// Add debug logging for environment variables
+console.log('Environment variables check:', {
+  // OAuth 1.0a credentials (needed for posting tweets)
+  apiKey: process.env.TWITTER_API_KEY?.substring(0,4) + '...',
+  apiSecret: process.env.TWITTER_API_SECRET?.substring(0,4) + '...',
+  accessToken: process.env.TWITTER_ACCESS_TOKEN?.substring(0,4) + '...',
+  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.substring(0,4) + '...',
+  // OAuth 2.0 credentials (for other API features)
+  clientId: process.env.TWITTER_CLIENT_ID?.substring(0,4) + '...',
+  clientSecret: process.env.TWITTER_CLIENT_SECRET?.substring(0,4) + '...',
+  bearerToken: process.env.TWITTER_BEARER_TOKEN?.substring(0,4) + '...'
 });
 
-// Add debug logging
-console.log('Twitter Credentials Check:', {
-  oauth1: {
-    hasConsumerKey: !!process.env.TWITTER_API_KEY,
-    hasConsumerSecret: !!process.env.TWITTER_API_SECRET,
-    hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-    hasAccessTokenSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
-  },
-  oauth2: {
-    hasClientId: !!process.env.TWITTER_CLIENT_ID,
-    hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
-    hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN
-  }
+// Initialize Twitter client
+const twitterClient = new Client({
+  // OAuth 1.0a (required for tweeting)
+  apiKey: process.env.TWITTER_API_KEY,
+  apiSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  // OAuth 2.0 (optional)
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN
+});
+
+// Add debug logging for client
+console.log('Twitter client initialized:', {
+  // OAuth 1.0a
+  hasApiKey: !!twitterClient.apiKey,
+  hasApiSecret: !!twitterClient.apiSecret,
+  hasAccessToken: !!twitterClient.accessToken,
+  hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
+  // OAuth 2.0
+  hasClientId: !!twitterClient.clientId,
+  hasClientSecret: !!twitterClient.clientSecret,
+  hasBearerToken: !!twitterClient.bearerToken
 });
 
 const MAX_RETRIES = 3;
