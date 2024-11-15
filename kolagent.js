@@ -34,6 +34,16 @@ const twitterClient = new Client({
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 });
 
+// Initialize the client before use
+(async () => {
+  try {
+    await twitterClient.login();
+    console.log('Twitter client successfully logged in');
+  } catch (error) {
+    console.error('Failed to initialize Twitter client:', error);
+  }
+})();
+
 // Debug logging
 console.log('Twitter credentials loaded:', {
   hasAppKey: !!process.env.TWITTER_API_KEY,
