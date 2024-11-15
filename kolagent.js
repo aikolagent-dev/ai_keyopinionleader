@@ -1,8 +1,10 @@
-require('dotenv').config();
-const express = require('express');
-const { Client } = require('twitter.js');
-const OpenAI = require('openai');
-const axios = require('axios');
+import dotenv from 'dotenv';
+import express from 'express';
+import { Client } from 'twitter.js';
+import OpenAI from 'openai';
+import axios from 'axios';
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -12,7 +14,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with environment variables
+// Initialize Twitter client
 const twitterClient = new Client({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
@@ -22,6 +24,7 @@ const twitterClient = new Client({
   clientId: process.env.TWITTER_CLIENT_ID,
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
+
 
 // Add debug logging for Twitter credentials
 console.log('Twitter credentials loaded:', {
@@ -39,6 +42,9 @@ const RETRY_DELAY = 1000;
 
 // Function to post a tweet with retry logic
 const postTweet = async (tweetContent, hashtags) => {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000;
+
   const formatTweet = (content, tags) => {
     const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
     return `${content}\n\n${hashtagString}`.trim();
@@ -71,9 +77,12 @@ const postTweet = async (tweetContent, hashtags) => {
   try {
     validateTweetContent(tweetContent, hashtags);
     const fullTweet = formatTweet(tweetContent, hashtags);
-    return await postWithRetry(fullTweet);
+    const tweetId = await postWithRetry(fullTweet);
+    
+    console.log('Tweet successfully queued for posting 📤');
+    return tweetId;
   } catch (error) {
-    console.error('Error in postTweet:', error.message);
+    console.error('Error in postTweet:', error.message, '❌');
     throw error;
   }
 };

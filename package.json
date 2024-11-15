@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "An AI-based Key Opinion Leader agent for promoting tokens",
   "main": "kolagent.js",
+  "type": "module",
   "dependencies": {
     "axios": "^1.7.7",
     "dotenv": "^10.0.0",
