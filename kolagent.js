@@ -12,20 +12,44 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter.js client
+// Initialize Twitter client with environment variables
 const twitterClient = new Client();
 
-// Test Twitter.js initialization
+// Initialize the client with credentials
 (async () => {
   try {
     console.log('Initializing Twitter client...');
-    await twitterClient.login({
-      consumerKey: process.env.TWITTER_API_KEY,
-      consumerSecret: process.env.TWITTER_API_SECRET,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN,
-      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+    
+    // Convert credentials to strings and verify
+    const credentials = {
+      consumerKey: String(process.env.TWITTER_API_KEY || ''),
+      consumerSecret: String(process.env.TWITTER_API_SECRET || ''),
+      accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
+      accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || '')
+    };
+
+    // Log credentials status (safely)
+    console.log('Twitter credentials loaded:', {
+      hasConsumerKey: !!credentials.consumerKey,
+      hasConsumerSecret: !!credentials.consumerSecret,
+      hasAccessToken: !!credentials.accessToken,
+      hasAccessSecret: !!credentials.accessSecret,
+      lengths: {
+        consumerKey: credentials.consumerKey.length,
+        consumerSecret: credentials.consumerSecret.length,
+        accessToken: credentials.accessToken.length,
+        accessSecret: credentials.accessSecret.length
+      }
     });
-    console.log('Twitter client initialized successfully.');
+
+    // Verify all credentials are present
+    if (!credentials.consumerKey || !credentials.consumerSecret || 
+        !credentials.accessToken || !credentials.accessSecret) {
+      throw new Error('Missing required Twitter credentials');
+    }
+
+    await twitterClient.login(credentials);
+    console.log('Twitter client initialized successfully');
   } catch (error) {
     console.error('Error initializing Twitter client:', error.message);
     process.exit(1);
