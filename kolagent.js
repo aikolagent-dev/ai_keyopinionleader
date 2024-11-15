@@ -12,6 +12,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Add detailed credential logging
+console.log('Raw Twitter credentials:', {
+  appKey: typeof process.env.TWITTER_API_KEY === 'string' ? 'present' : 'missing',
+  appSecret: typeof process.env.TWITTER_API_SECRET === 'string' ? 'present' : 'missing',
+  accessToken: typeof process.env.TWITTER_ACCESS_TOKEN === 'string' ? 'present' : 'missing',
+  accessSecret: typeof process.env.TWITTER_ACCESS_TOKEN_SECRET === 'string' ? 'present' : 'missing',
+  lengths: {
+    appKey: process.env.TWITTER_API_KEY?.length || 0,
+    appSecret: process.env.TWITTER_API_SECRET?.length || 0,
+    accessToken: process.env.TWITTER_ACCESS_TOKEN?.length || 0,
+    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.length || 0
+  }
+});
+
 // Initialize Twitter client with environment variables
 const twitterClient = new Client({
   appKey: process.env.TWITTER_API_KEY,
