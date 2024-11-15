@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { TwitterApi } = require('twitter-api-v2');
+const { Client } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
 
@@ -8,37 +8,26 @@ const app = express();
 app.use(express.json());
 
 // Initialize OpenAI client
-if (!process.env.OPENAI_API_KEY) {
-  console.error('Missing OpenAI API Key. Check your environment variables.');
-  process.exit(1);
-}
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Debug log environment variables
-console.log('Environment Variables:', {
-  TWITTER_API_KEY: !!process.env.TWITTER_API_KEY,
-  TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET,
-  TWITTER_ACCESS_TOKEN: !!process.env.TWITTER_ACCESS_TOKEN,
-  TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+// Initialize Twitter.js client
+const twitterClient = new Client({
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
 });
 
-// Initialize Twitter client with environment variables
-let twitterClient;
-try {
-  twitterClient = new TwitterApi({
-    appKey: process.env.TWITTER_API_KEY,
-    appSecret: process.env.TWITTER_API_SECRET,
-    accessToken: process.env.TWITTER_ACCESS_TOKEN,
-    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  });
-  console.log('Twitter client initialized successfully.');
-} catch (error) {
-  console.error('Failed to initialize Twitter client:', error.message);
-  process.exit(1);
-}
+// Test Twitter.js initialization
+(async () => {
+  try {
+    console.log('Initializing Twitter client...');
+    await twitterClient.users.findUserByUsername('TwitterDev'); // Test API connection
+    console.log('Twitter client initialized successfully.');
+  } catch (error) {
+    console.error('Error initializing Twitter client:', error.message);
+    process.exit(1);
+  }
+})();
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -52,17 +41,17 @@ const postTweet = async (tweetContent, hashtags) => {
 
   const postWithRetry = async (tweet, attempt = 1) => {
     try {
-      console.log(`Attempt ${attempt}: Posting tweet...`);
-      const response = await twitterClient.v1.tweet(tweet);
+      const response = await twitterClient.tweets.create({ text: tweet });
       console.log('Tweet posted successfully:', response);
       return response.id;
     } catch (error) {
-      console.error(`Error in attempt ${attempt}:`, error.message);
       if (attempt < MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
+        console.log(`Error posting tweet (attempt ${attempt}):`, error.message);
+        console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
         return postWithRetry(tweet, attempt + 1);
       }
-      throw error;
+      throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
     }
   };
 
@@ -123,14 +112,20 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Write a very short, enthusiastic promotional message (maximum 200 characters) for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token symbol is ${ticker}.` : ""} Include one hashtag.`,
-
-      `Create a brief, provocative message (under 200 characters) for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Include one hashtag.`,
-
-      `Write a concise, supportive message (max 200 characters) for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Known as ${ticker}.` : ""} Include one hashtag.`
+      `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
+      
+      `Create a provocative message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
+      
+      `Write a supportive message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
+      
+      `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
+      
+      `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
+       The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
@@ -143,28 +138,13 @@ async function generateShillMessage(contractAddress) {
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { 
-              role: 'system', 
-              content: 'You must generate messages that are under 200 characters. Be very concise.' 
-            },
-            { 
-              role: 'user', 
-              content: prompt 
-            }
+            { role: 'system', content: 'You must generate concise, clear messages suitable for Twitter.' },
+            { role: 'user', content: prompt },
           ],
           max_tokens: 100,
         });
 
-        let shillMessage = response.choices[0].message.content.trim();
-
-        // Truncate message if it's still too long
-        if (shillMessage.length > 200) {
-          const lastPeriodIndex = shillMessage.lastIndexOf('.', 200);
-          const lastSpaceIndex = shillMessage.lastIndexOf(' ', 200);
-          const truncateIndex = Math.max(lastPeriodIndex, lastSpaceIndex);
-          shillMessage = truncateIndex > 0 ? shillMessage.substring(0, truncateIndex) : shillMessage.substring(0, 200);
-        }
-
+        const shillMessage = response.choices[0].message.content.trim();
         console.log("Generated Shill Message:", shillMessage);
 
         await postTweet(shillMessage, [ticker || "Crypto"]);
