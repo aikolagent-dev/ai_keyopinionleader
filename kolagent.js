@@ -26,51 +26,37 @@ if (!credentials.appKey || !credentials.appSecret || !credentials.accessToken ||
   process.exit(1);
 }
 
-// Debug log raw credentials (with length only)
-console.log('Raw Twitter credentials:', {
-  appKey: credentials.appKey ? 'present' : 'missing',
-  appSecret: credentials.appSecret ? 'present' : 'missing',
-  accessToken: credentials.accessToken ? 'present' : 'missing',
-  accessSecret: credentials.accessSecret ? 'present' : 'missing',
-  lengths: {
-    appKey: credentials.appKey?.length || 0,
-    appSecret: credentials.appSecret?.length || 0,
-    accessToken: credentials.accessToken?.length || 0,
-    accessSecret: credentials.accessSecret?.length || 0
-  }
-});
-
-// Create client with explicit string values
-const twitterClient = new Client({
-  appKey: String(credentials.appKey),
-  appSecret: String(credentials.appSecret),
-  accessToken: String(credentials.accessToken),
-  accessSecret: String(credentials.accessSecret),
-});
-
-// Initialize the client before use
+// Create client with explicit string values and await initialization
+let twitterClient;
 (async () => {
   try {
-    // Debug log the client configuration
-    console.log('Twitter client configuration:', {
-      hasClient: !!twitterClient,
-      hasOptions: !!twitterClient?.options,
-      credentials: {
-        hasAppKey: !!credentials.appKey,
-        hasAppSecret: !!credentials.appSecret,
-        hasAccessToken: !!credentials.accessToken,
-        hasAccessSecret: !!credentials.accessSecret
-      }
+    twitterClient = new Client({
+      appKey: credentials.appKey,
+      appSecret: credentials.appSecret,
+      accessToken: credentials.accessToken,
+      accessSecret: credentials.accessSecret,
     });
 
-    // No need to call login() again since we passed credentials to constructor
-    console.log('Twitter client initialized');
+    // Test the client with a simple API call
+    await twitterClient.users.fetchMe();
+    console.log('Twitter client successfully authenticated');
   } catch (error) {
     console.error('Failed to initialize Twitter client:', {
       name: error.name,
       message: error.message,
-      code: error.code
+      code: error.code,
+      credentials: {
+        hasAppKey: !!credentials.appKey,
+        hasAppSecret: !!credentials.appSecret,
+        hasAccessToken: !!credentials.accessToken,
+        hasAccessSecret: !!credentials.accessSecret,
+        appKeyLength: credentials.appKey.length,
+        appSecretLength: credentials.appSecret.length,
+        accessTokenLength: credentials.accessToken.length,
+        accessSecretLength: credentials.accessSecret.length
+      }
     });
+    process.exit(1);
   }
 })();
 
