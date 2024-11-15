@@ -12,11 +12,15 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client
+// Initialize Twitter client with environment variables
 const twitterClient = new Client({
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
   clientId: process.env.TWITTER_CLIENT_ID,
   clientSecret: process.env.TWITTER_CLIENT_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
 });
 
 const MAX_RETRIES = 3;
@@ -111,19 +115,19 @@ async function generateShillMessage(contractAddress) {
 
     const prompts = [
       `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token symbol is ${ticker}.` : ""} Do not sound cringe. Only use one hashtag of the token symbol and keep it under 280 characters`,
+       ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
       
       `Create a provocative message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with only one hashtag of the token symbol and under 280 characters.`,
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
       
-      `Write a smart message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Known as ${ticker}.` : ""} Use a intelligent tone. Highlight the potential, with only one hashtag for the token symbol and under 280 characters.`,
+      `Write a supportive message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
       
       `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with only one hashtag of the token symbol.`,
+       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
       
-      `Write message promoting a memecoin with contract address ${contractAddress}. 
-       It should start with "The ticker is ${ticker}" " Use a straightforward tone to share why people should ape into it, keep it under 280 characters with only one hashtag of the token symbol.`
+      `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
+       The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
@@ -134,7 +138,7 @@ async function generateShillMessage(contractAddress) {
     while (retries > 0) {
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4',
+          model: 'gpt-4o',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 100,
         });
