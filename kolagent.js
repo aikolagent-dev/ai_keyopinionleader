@@ -3,6 +3,7 @@ const express = require('express');
 const { Client } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
+const { TwitterApi } = require('twitter-api-v2');
 
 const app = express();
 app.use(express.json());
@@ -14,44 +15,37 @@ const openai = new OpenAI({
 
 // Initialize Twitter client with environment variables
 const credentials = {
-  appKey: String(process.env.TWITTER_API_KEY || ''),
-  appSecret: String(process.env.TWITTER_API_SECRET || ''),
+  apiKey: String(process.env.TWITTER_API_KEY || ''),
+  apiSecretKey: String(process.env.TWITTER_API_SECRET || ''),
   accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-  accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
+  accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
 };
 
 // Debug log credentials (safely)
 console.log('Raw Twitter credentials:', {
-  appKey: credentials.appKey ? 'present' : 'missing',
-  appSecret: credentials.appSecret ? 'present' : 'missing',
-  accessToken: credentials.accessToken ? 'present' : 'missing',
-  accessSecret: credentials.accessSecret ? 'present' : 'missing',
-  lengths: {
-    appKey: credentials.appKey.length,
-    appSecret: credentials.appSecret.length,
-    accessToken: credentials.accessToken.length,
-    accessSecret: credentials.accessSecret.length
-  }
+  apiKey: credentials.apiKey ? `${credentials.apiKey.substring(0, 4)}...` : 'missing',
+  apiSecretKey: credentials.apiSecretKey ? `${credentials.apiSecretKey.substring(0, 4)}...` : 'missing',
+  accessToken: credentials.accessToken ? `${credentials.accessToken.substring(0, 4)}...` : 'missing',
+  accessTokenSecret: credentials.accessTokenSecret ? `${credentials.accessTokenSecret.substring(0, 4)}...` : 'missing'
 });
 
 // Create client with explicit string values
 let twitterClient;
 try {
-  twitterClient = new Client({
-    appKey: credentials.appKey,
-    appSecret: credentials.appSecret,
+  twitterClient = new TwitterApi({
+    apiKey: credentials.apiKey,
+    apiSecretKey: credentials.apiSecretKey,
     accessToken: credentials.accessToken,
-    accessSecret: credentials.accessSecret,
+    accessTokenSecret: credentials.accessTokenSecret,
   });
 
   console.log('Twitter client configuration:', {
     hasClient: !!twitterClient,
-    hasOptions: !!twitterClient?.options,
     credentials: {
-      hasAppKey: !!credentials.appKey,
-      hasAppSecret: !!credentials.appSecret,
+      hasApiKey: !!credentials.apiKey,
+      hasApiSecretKey: !!credentials.apiSecretKey,
       hasAccessToken: !!credentials.accessToken,
-      hasAccessSecret: !!credentials.accessSecret
+      hasAccessTokenSecret: !!credentials.accessTokenSecret
     }
   });
 
@@ -63,14 +57,15 @@ try {
   // Then test async operations
   (async () => {
     try {
-      const testTweet = await twitterClient.tweets.create({ text: 'Test tweet' });
+      const testTweet = await twitterClient.v2.tweet('Test tweet');
       console.log('Twitter client successfully authenticated');
-      await twitterClient.tweets.destroy(testTweet.id);
+      await twitterClient.v2.deleteTweet(testTweet.data.id);
     } catch (error) {
       console.error('Failed to test Twitter client:', {
         name: error.name,
         message: error.message,
-        code: error.code
+        code: error.code,
+        stack: error.stack
       });
     }
   })();
@@ -79,7 +74,8 @@ try {
   console.error('Failed to create Twitter client:', {
     name: error.name,
     message: error.message,
-    code: error.code
+    code: error.code,
+    stack: error.stack
   });
   process.exit(1);
 }
