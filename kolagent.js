@@ -12,24 +12,17 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with necessary credentials
+// Initialize Twitter client
 const twitterClient = new Client({
-  consumer_key: process.env.TWITTER_API_KEY,
-  consumer_secret: process.env.TWITTER_API_SECRET,
-  access_token_key: process.env.TWITTER_ACCESS_TOKEN,
-  access_token_secret: process.env.TWITTER_ACCESS_SECRET,
-  client_id: process.env.TWITTER_CLIENT_ID,
-  client_secret: process.env.TWITTER_CLIENT_SECRET,
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
 });
-
-// Verify Twitter client
-twitterClient.get('account/verify_credentials')
-  .then(() => console.log("Twitter client authenticated successfully."))
-  .catch(error => console.error("Twitter client authentication failed:", error));
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
+// Function to post a tweet with retry logic
 const postTweet = async (tweetContent, hashtags) => {
   const formatTweet = (content, tags) => {
     const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
