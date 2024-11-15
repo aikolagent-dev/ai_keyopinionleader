@@ -18,20 +18,14 @@ const twitterClient = new Client({
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
   accessSecret: process.env.TWITTER_ACCESS_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-  clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-// Add debug logging
+// Modify debug logging to check essential credentials
 console.log('Twitter credentials loaded:', {
   hasAppKey: !!process.env.TWITTER_API_KEY,
   hasAppSecret: !!process.env.TWITTER_API_SECRET,
   hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
   hasAccessSecret: !!process.env.TWITTER_ACCESS_SECRET,
-  hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
-  hasClientId: !!process.env.TWITTER_CLIENT_ID,
-  hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
 });
 
 const MAX_RETRIES = 3;
