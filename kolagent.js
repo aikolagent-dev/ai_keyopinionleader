@@ -13,27 +13,31 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with environment variables
-const twitterClient = new Client({
-  apiKey: process.env.TWITTER_API_KEY,
-  apiSecret: process.env.TWITTER_API_SECRET,
+const twitterClient = new Client();
+
+// Set credentials after initialization
+twitterClient.login({
+  consumerKey: process.env.TWITTER_API_KEY,
+  consumerSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
   accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
 // Log environment variables (safely)
 console.log('Environment variables check:', {
-  apiKey: process.env.TWITTER_API_KEY?.substring(0,4) + '...',
-  apiSecret: process.env.TWITTER_API_SECRET?.substring(0,4) + '...',
+  consumerKey: process.env.TWITTER_API_KEY?.substring(0,4) + '...',
+  consumerSecret: process.env.TWITTER_API_SECRET?.substring(0,4) + '...',
   accessToken: process.env.TWITTER_ACCESS_TOKEN?.substring(0,4) + '...',
   accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.substring(0,4) + '...'
 });
 
 // Log client state
 console.log('Twitter client state:', {
-  hasApiKey: !!twitterClient.apiKey,
-  hasApiSecret: !!twitterClient.apiSecret,
+  hasConsumerKey: !!twitterClient.consumerKey,
+  hasConsumerSecret: !!twitterClient.consumerSecret,
   hasAccessToken: !!twitterClient.accessToken,
-  hasAccessTokenSecret: !!twitterClient.accessTokenSecret
+  hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
+  isLoggedIn: !!twitterClient.isLoggedIn
 });
 
 const MAX_RETRIES = 3;
