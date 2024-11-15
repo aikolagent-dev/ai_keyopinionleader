@@ -13,25 +13,21 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with environment variables
-const twitterClient = new Client({
+const auth = {
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-  clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET,
-});
+};
 
-// Add debug logging for credentials
-console.log('Twitter credentials loaded:', {
-  hasAppKey: !!process.env.TWITTER_API_KEY,
-  hasAppSecret: !!process.env.TWITTER_API_SECRET,
-  hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-  hasAccessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
-  hasClientId: !!process.env.TWITTER_CLIENT_ID,
-  hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
+const twitterClient = new Client(auth);
+
+// Add more detailed debug logging
+console.log('Twitter client initialized with auth:', {
+  appKeyLength: auth.appKey?.length,
+  appSecretLength: auth.appSecret?.length,
+  accessTokenLength: auth.accessToken?.length,
+  accessSecretLength: auth.accessSecret?.length
 });
 
 const MAX_RETRIES = 3;
@@ -57,14 +53,23 @@ const postTweet = async (tweetContent, hashtags) => {
 
   const postWithRetry = async (tweet, attempt = 1) => {
     try {
+      console.log(`Attempt ${attempt} to post tweet: "${tweet}"`);
       const response = await twitterClient.tweets.create({ text: tweet });
+      console.log('Tweet posted successfully:', response);
       return response.id;
     } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
       if (attempt < MAX_RETRIES) {
+        console.log(`Waiting ${RETRY_DELAY * attempt}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
         return postWithRetry(tweet, attempt + 1);
       }
-      throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
+      throw error;
     }
   };
 
