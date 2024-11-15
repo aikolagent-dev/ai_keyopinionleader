@@ -15,68 +15,28 @@ const openai = new OpenAI({
 
 // Initialize Twitter client with environment variables
 const credentials = {
-  apiKey: String(process.env.TWITTER_API_KEY || ''),
-  apiSecretKey: String(process.env.TWITTER_API_SECRET || ''),
-  accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-  accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
+  apiKey: process.env.TWITTER_API_KEY,
+  apiSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 };
 
-// Debug log credentials (safely)
-console.log('Raw Twitter credentials:', {
-  apiKey: credentials.apiKey ? `${credentials.apiKey.substring(0, 4)}...` : 'missing',
-  apiSecretKey: credentials.apiSecretKey ? `${credentials.apiSecretKey.substring(0, 4)}...` : 'missing',
-  accessToken: credentials.accessToken ? `${credentials.accessToken.substring(0, 4)}...` : 'missing',
-  accessTokenSecret: credentials.accessTokenSecret ? `${credentials.accessTokenSecret.substring(0, 4)}...` : 'missing'
-});
-
-// Create client with explicit string values
+// Create client
 let twitterClient;
 try {
-  twitterClient = new TwitterApi({
-    apiKey: credentials.apiKey,
-    apiSecretKey: credentials.apiSecretKey,
+  twitterClient = new Client();
+  
+  // Login with OAuth 1.0a credentials
+  twitterClient.login({
+    consumerKey: credentials.apiKey,
+    consumerSecret: credentials.apiSecret,
     accessToken: credentials.accessToken,
-    accessTokenSecret: credentials.accessTokenSecret,
+    accessSecret: credentials.accessSecret
   });
 
-  console.log('Twitter client configuration:', {
-    hasClient: !!twitterClient,
-    credentials: {
-      hasApiKey: !!credentials.apiKey,
-      hasApiSecretKey: !!credentials.apiSecretKey,
-      hasAccessToken: !!credentials.accessToken,
-      hasAccessTokenSecret: !!credentials.accessTokenSecret
-    }
-  });
-
-  // Test the client synchronously first
-  if (twitterClient) {
-    console.log('Twitter client initialized');
-  }
-
-  // Then test async operations
-  (async () => {
-    try {
-      const testTweet = await twitterClient.v2.tweet('Test tweet');
-      console.log('Twitter client successfully authenticated');
-      await twitterClient.v2.deleteTweet(testTweet.data.id);
-    } catch (error) {
-      console.error('Failed to test Twitter client:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
-    }
-  })();
-
+  console.log('Twitter client initialized successfully');
 } catch (error) {
-  console.error('Failed to create Twitter client:', {
-    name: error.name,
-    message: error.message,
-    code: error.code,
-    stack: error.stack
-  });
+  console.error('Failed to create Twitter client:', error);
   process.exit(1);
 }
 
@@ -98,46 +58,14 @@ const postTweet = async (tweetContent, hashtags) => {
     return `${content}\n\n${hashtagString}`.trim();
   };
 
-  const validateTweetContent = (content, tags) => {
-    if (tags.length > 1) {
-      throw new Error('Tweet can only have one hashtag');
-    }
-    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
-    const fullTweetLength = content.length + (tags.length > 0 ? 2 : 0) + hashtagString.length;
-    if (fullTweetLength > 280) {
-      throw new Error(`Tweet exceeds character limit (${fullTweetLength}/280)`);
-    }
-  };
-
-  const postWithRetry = async (tweet, attempt = 1) => {
-    try {
-      console.log(`Attempt ${attempt} to post tweet: "${tweet}"`);
-      const response = await twitterClient.tweets.create({ text: tweet });
-      console.log('Tweet posted successfully:', response);
-      return response.id;
-    } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
-      if (attempt < MAX_RETRIES) {
-        console.log(`Waiting ${RETRY_DELAY * attempt}ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
-        return postWithRetry(tweet, attempt + 1);
-      }
-      throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
-      throw error;
-    }
-  };
-
   try {
-    validateTweetContent(tweetContent, hashtags);
     const fullTweet = formatTweet(tweetContent, hashtags);
-    return await postWithRetry(fullTweet);
+    console.log(`Attempting to post tweet: "${fullTweet}"`);
+    const response = await twitterClient.tweets.create({ text: fullTweet });
+    console.log('Tweet posted successfully:', response);
+    return response.id;
   } catch (error) {
-    console.error('Error in postTweet:', error.message);
+    console.error('Error posting tweet:', error);
     throw error;
   }
 };
