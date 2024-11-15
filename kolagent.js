@@ -20,47 +20,69 @@ const credentials = {
   accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
 };
 
-// Add validation before creating client
-if (!credentials.appKey || !credentials.appSecret || !credentials.accessToken || !credentials.accessSecret) {
-  console.error('Missing required Twitter credentials');
+// Debug log credentials (safely)
+console.log('Raw Twitter credentials:', {
+  appKey: credentials.appKey ? 'present' : 'missing',
+  appSecret: credentials.appSecret ? 'present' : 'missing',
+  accessToken: credentials.accessToken ? 'present' : 'missing',
+  accessSecret: credentials.accessSecret ? 'present' : 'missing',
+  lengths: {
+    appKey: credentials.appKey.length,
+    appSecret: credentials.appSecret.length,
+    accessToken: credentials.accessToken.length,
+    accessSecret: credentials.accessSecret.length
+  }
+});
+
+// Create client with explicit string values
+let twitterClient;
+try {
+  twitterClient = new Client({
+    appKey: credentials.appKey,
+    appSecret: credentials.appSecret,
+    accessToken: credentials.accessToken,
+    accessSecret: credentials.accessSecret,
+  });
+
+  console.log('Twitter client configuration:', {
+    hasClient: !!twitterClient,
+    hasOptions: !!twitterClient?.options,
+    credentials: {
+      hasAppKey: !!credentials.appKey,
+      hasAppSecret: !!credentials.appSecret,
+      hasAccessToken: !!credentials.accessToken,
+      hasAccessSecret: !!credentials.accessSecret
+    }
+  });
+
+  // Test the client synchronously first
+  if (twitterClient) {
+    console.log('Twitter client initialized');
+  }
+
+  // Then test async operations
+  (async () => {
+    try {
+      const testTweet = await twitterClient.tweets.create({ text: 'Test tweet' });
+      console.log('Twitter client successfully authenticated');
+      await twitterClient.tweets.destroy(testTweet.id);
+    } catch (error) {
+      console.error('Failed to test Twitter client:', {
+        name: error.name,
+        message: error.message,
+        code: error.code
+      });
+    }
+  })();
+
+} catch (error) {
+  console.error('Failed to create Twitter client:', {
+    name: error.name,
+    message: error.message,
+    code: error.code
+  });
   process.exit(1);
 }
-
-// Create client with explicit string values and await initialization
-let twitterClient;
-(async () => {
-  try {
-    twitterClient = new Client({
-      appKey: credentials.appKey,
-      appSecret: credentials.appSecret,
-      accessToken: credentials.accessToken,
-      accessSecret: credentials.accessSecret,
-    });
-
-    // Test the client with a simple API call
-    const testTweet = await twitterClient.tweets.create({ text: 'Test tweet' });
-    console.log('Twitter client successfully authenticated');
-    // Delete the test tweet
-    await twitterClient.tweets.destroy(testTweet.id);
-  } catch (error) {
-    console.error('Failed to initialize Twitter client:', {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      credentials: {
-        hasAppKey: !!credentials.appKey,
-        hasAppSecret: !!credentials.appSecret,
-        hasAccessToken: !!credentials.accessToken,
-        hasAccessSecret: !!credentials.accessSecret,
-        appKeyLength: credentials.appKey.length,
-        appSecretLength: credentials.appSecret.length,
-        accessTokenLength: credentials.accessToken.length,
-        accessSecretLength: credentials.accessSecret.length
-      }
-    });
-    process.exit(1);
-  }
-})();
 
 // Debug logging
 console.log('Twitter credentials loaded:', {
