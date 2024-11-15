@@ -12,23 +12,41 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with environment variables
+// Validate and convert credentials to strings
+const credentials = {
+  consumerKey: String(process.env.TWITTER_API_KEY || ''),
+  consumerSecret: String(process.env.TWITTER_API_SECRET || ''),
+  accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
+  accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || '')
+};
+
+// Validate all credentials are present
+const missingCreds = Object.entries(credentials)
+  .filter(([key, value]) => !value || value === 'undefined')
+  .map(([key]) => key);
+
+if (missingCreds.length > 0) {
+  console.error('Missing Twitter credentials:', missingCreds);
+  throw new Error('Missing required Twitter credentials');
+}
+
+// Initialize Twitter client with validated credentials
 const twitterClient = new Client();
 
-// Set credentials after initialization
-twitterClient.login({
-  consumerKey: process.env.TWITTER_API_KEY,
-  consumerSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-});
+try {
+  twitterClient.login(credentials);
+  console.log('Twitter client login successful');
+} catch (error) {
+  console.error('Twitter client login failed:', error);
+  throw error;
+}
 
 // Log environment variables (safely)
-console.log('Environment variables check:', {
-  consumerKey: process.env.TWITTER_API_KEY?.substring(0,4) + '...',
-  consumerSecret: process.env.TWITTER_API_SECRET?.substring(0,4) + '...',
-  accessToken: process.env.TWITTER_ACCESS_TOKEN?.substring(0,4) + '...',
-  accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET?.substring(0,4) + '...'
+console.log('Credentials check:', {
+  consumerKey: credentials.consumerKey.substring(0,4) + '...',
+  consumerSecret: credentials.consumerSecret.substring(0,4) + '...',
+  accessToken: credentials.accessToken.substring(0,4) + '...',
+  accessTokenSecret: credentials.accessTokenSecret.substring(0,4) + '...'
 });
 
 // Log client state
