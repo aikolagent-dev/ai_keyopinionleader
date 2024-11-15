@@ -13,48 +13,26 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with environment variables
-const twitterClient = new Client();
+const twitterClient = new Client({
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
+});
 
-// Initialize the client with credentials
-(async () => {
-  try {
-    console.log('Initializing Twitter client...');
-    
-    // Convert credentials to strings and verify
-    const credentials = {
-      consumerKey: String(process.env.TWITTER_API_KEY || ''),
-      consumerSecret: String(process.env.TWITTER_API_SECRET || ''),
-      accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-      accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || '')
-    };
-
-    // Log credentials status (safely)
-    console.log('Twitter credentials loaded:', {
-      hasConsumerKey: !!credentials.consumerKey,
-      hasConsumerSecret: !!credentials.consumerSecret,
-      hasAccessToken: !!credentials.accessToken,
-      hasAccessSecret: !!credentials.accessSecret,
-      lengths: {
-        consumerKey: credentials.consumerKey.length,
-        consumerSecret: credentials.consumerSecret.length,
-        accessToken: credentials.accessToken.length,
-        accessSecret: credentials.accessSecret.length
-      }
-    });
-
-    // Verify all credentials are present
-    if (!credentials.consumerKey || !credentials.consumerSecret || 
-        !credentials.accessToken || !credentials.accessSecret) {
-      throw new Error('Missing required Twitter credentials');
-    }
-
-    await twitterClient.login(credentials);
-    console.log('Twitter client initialized successfully');
-  } catch (error) {
-    console.error('Error initializing Twitter client:', error.message);
-    process.exit(1);
-  }
-})();
+// Add debug logging for Twitter credentials
+console.log('Twitter credentials loaded:', {
+  hasAppKey: !!process.env.TWITTER_API_KEY,
+  hasAppSecret: !!process.env.TWITTER_API_SECRET,
+  hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
+  hasAccessSecret: !!process.env.TWITTER_ACCESS_SECRET,
+  hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
+  hasClientId: !!process.env.TWITTER_CLIENT_ID,
+  hasClientSecret: !!process.env.TWITTER_CLIENT_SECRET,
+});
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -66,16 +44,24 @@ const postTweet = async (tweetContent, hashtags) => {
     return `${content}\n\n${hashtagString}`.trim();
   };
 
+  const validateTweetContent = (content, tags) => {
+    if (tags.length > 1) {
+      throw new Error('Tweet can only have one hashtag');
+    }
+    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
+    const fullTweetLength = content.length + (tags.length > 0 ? 2 : 0) + hashtagString.length;
+    if (fullTweetLength > 280) {
+      throw new Error(`Tweet exceeds character limit (${fullTweetLength}/280)`);
+    }
+  };
+
   const postWithRetry = async (tweet, attempt = 1) => {
     try {
       const response = await twitterClient.tweets.create({ text: tweet });
-      console.log('Tweet posted successfully:', response);
       return response.id;
     } catch (error) {
       if (attempt < MAX_RETRIES) {
-        console.log(`Error posting tweet (attempt ${attempt}):`, error.message);
-        console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
         return postWithRetry(tweet, attempt + 1);
       }
       throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
@@ -83,8 +69,8 @@ const postTweet = async (tweetContent, hashtags) => {
   };
 
   try {
+    validateTweetContent(tweetContent, hashtags);
     const fullTweet = formatTweet(tweetContent, hashtags);
-    console.log(`Attempting to post tweet: "${fullTweet}"`);
     return await postWithRetry(fullTweet);
   } catch (error) {
     console.error('Error in postTweet:', error.message);
@@ -141,16 +127,16 @@ async function generateShillMessage(contractAddress) {
     const prompts = [
       `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
-      
+
       `Create a provocative message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
-      
+
       `Write a supportive message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
-      
+
       `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
-      
+
       `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
        The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
     ];
@@ -164,10 +150,7 @@ async function generateShillMessage(contractAddress) {
       try {
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
-          messages: [
-            { role: 'system', content: 'You must generate concise, clear messages suitable for Twitter.' },
-            { role: 'user', content: prompt },
-          ],
+          messages: [{ role: 'user', content: prompt }],
           max_tokens: 100,
         });
 
