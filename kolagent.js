@@ -150,14 +150,21 @@ app.post('/webhook', async (req, res) => {
   });
 
   try {
-    // Log the incoming data (safely)
+    // Extract contract address from the webhook data
+    const webhookData = req.body[0];
+    const contractAddress = webhookData?.accountData?.[0]?.account;
+
     console.log('Processing webhook data:', {
-      accountDataCount: req.body[0]?.accountData?.length,
-      firstAccount: req.body[0]?.accountData?.[0]?.account?.substring(0,8) + '...',
-      tokenChanges: req.body[0]?.accountData?.[0]?.tokenBalanceChanges
+      accountDataCount: webhookData?.accountData?.length,
+      firstAccount: contractAddress?.substring(0,8) + '...',
+      tokenChanges: webhookData?.accountData?.[0]?.tokenBalanceChanges
     });
 
-    // Generate shill message
+    if (!contractAddress) {
+      throw new Error('No contract address found in webhook data');
+    }
+
+    // Generate shill message with the extracted contract address
     const shillMessage = `Unleash the crypto beast! Invest in ${contractAddress}. Your ticket to the moon! #MoonTicketCrypto\n\n#Crypto`;
     console.log('Generated message:', shillMessage);
 
