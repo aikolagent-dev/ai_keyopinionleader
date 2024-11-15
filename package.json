@@ -18,7 +18,7 @@
   "scripts": {
     "start": "node kolagent.js",
     "dev": "nodemon kolagent.js",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.cjs"
   },
   "engines": {
     "node": "18.x"
