@@ -1,11 +1,16 @@
 const webpack = require('webpack');
 const dotenv = require('dotenv');
+const path = require('path');
 
-// Load environment variables
 dotenv.config();
 
 module.exports = {
-  // ... other webpack configurations ...
+  mode: process.env.NODE_ENV || 'development',
+  entry: './kolagent.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js'
+  },
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
