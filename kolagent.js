@@ -3,6 +3,7 @@ import express from 'express';
 import { Client } from 'twitter.js';
 import OpenAI from 'openai';
 import axios from 'axios';
+import { TwitterApi } from 'twitter-api-v2';
 
 // Load environment variables
 dotenv.config();
@@ -20,18 +21,19 @@ if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
   console.error('Twitter credentials not found in environment');
 }
 
+// Initialize the client with your credentials
 const twitterClient = new TwitterApi({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-  clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
+// Get the read-write client
+const rwClient = twitterClient.readWrite;
+
 // You can verify the authentication by logging the client type
-console.log('Client type:', twitterClient.readWrite ? 'ReadWrite' : 'ReadOnly');
+console.log('Client type:', rwClient ? 'ReadWrite' : 'ReadOnly');
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
@@ -104,7 +106,7 @@ async function generateShillMessage(contractAddress) {
 // Function to post message on Twitter using API v1.1
 async function postOnTwitter(message) {
   try {
-    const { data: createdTweet } = await twitterClient.v1.tweet(message);
+    const { data: createdTweet } = await rwClient.v1.tweet(message);
     console.log("Shill message posted on Twitter:", createdTweet);
   } catch (error) {
     console.error("Error posting on Twitter:", error.message);

@@ -7,11 +7,14 @@
     "start": "node server.js"
   },
   "devDependencies": {
+    "dotenv": "^16.3.1",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4",
-    "dotenv": "^16.3.1"
+    "webpack-cli": "^5.1.4"
   },
   "engines": {
     "node": "18.x"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.18.2"
   }
 }
