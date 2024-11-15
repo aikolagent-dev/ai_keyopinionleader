@@ -15,110 +15,23 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client
-const initializeTwitterClient = async () => {
-  try {
-    const twitterClient = new Client();
-    
-    // Ensure all credentials are strings
-    const credentials = {
-      appKey: String(process.env.TWITTER_API_KEY || ''),
-      appSecret: String(process.env.TWITTER_API_SECRET || ''),
-      accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-      accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
-      bearerToken: String(process.env.TWITTER_BEARER_TOKEN || ''),
-      clientId: String(process.env.TWITTER_CLIENT_ID || ''),
-      clientSecret: String(process.env.TWITTER_CLIENT_SECRET || '')
-    };
+// Check if environment variables are available
+if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
+  console.error('Twitter credentials not found in environment');
+}
 
-    await twitterClient.login(credentials);
+const twitterClient = new TwitterApi({
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
+});
 
-    // Debug Twitter credentials loading
-    console.log('Twitter credentials loaded:', {
-      appKey: !!credentials.appKey,
-      appSecret: !!credentials.appSecret,
-      accessToken: !!credentials.accessToken,
-      accessSecret: !!credentials.accessSecret,
-      bearerToken: !!credentials.bearerToken,
-      clientId: !!credentials.clientId,
-      clientSecret: !!credentials.clientSecret
-    });
-
-    return twitterClient;
-  } catch (error) {
-    console.error('Failed to initialize Twitter client:', error);
-    throw error;
-  }
-};
-
-// Initialize clients
-let twitterClient;
-(async () => {
-  try {
-    twitterClient = await initializeTwitterClient();
-    
-    // Start the Express server after Twitter client is initialized
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
-  } catch (error) {
-    console.error('Failed to start application:', error);
-  }
-})();
-
-// Function to post a tweet with retry logic
-const postTweet = async (tweetContent, hashtags) => {
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 1000;
-
-  const formatTweet = (content, tags) => {
-    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
-    return `${content}\n\n${hashtagString}`.trim();
-  };
-
-  const validateTweetContent = (content, tags) => {
-    // Validate hashtag count
-    if (tags.length > 1) {
-      throw new Error('Tweet can only have one hashtag');
-    }
-
-    // Calculate total length
-    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
-    const fullTweetLength = content.length + (tags.length > 0 ? 2 : 0) + hashtagString.length;
-
-    // Validate length
-    if (fullTweetLength > 280) {
-      throw new Error(`Tweet exceeds character limit (${fullTweetLength}/280)`);
-    }
-  };
-
-  const postWithRetry = async (tweet, attempt = 1) => {
-    try {
-      const response = await twitterClient.tweets.create({ text: tweet });
-      return response.id;
-    } catch (error) {
-      if (attempt < MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt)); // Exponential backoff
-        return postWithRetry(tweet, attempt + 1);
-      }
-      throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
-    }
-  };
-
-  try {
-    // Validate content before formatting
-    validateTweetContent(tweetContent, hashtags);
-
-    // Format and post tweet
-    const fullTweet = formatTweet(tweetContent, hashtags);
-    const tweetId = await postWithRetry(fullTweet);
-
-    console.log('Tweet successfully queued for posting 📤');
-    return tweetId;
-  } catch (error) {
-    console.error('Error in postTweet:', error.message, '❌');
-    throw error;
-  }
-};
+// You can verify the authentication by logging the client type
+console.log('Client type:', twitterClient.readWrite ? 'ReadWrite' : 'ReadOnly');
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
@@ -167,8 +80,8 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
+      `Write a direct, concise and mysterious message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The ticker is ${ticker}.` : ""}. Keep it under 280 characters with one hashtag.`,
     ];
 
     const prompt = prompts[0];
@@ -187,3 +100,22 @@ async function generateShillMessage(contractAddress) {
     console.error("Error generating shill message:", error.message);
   }
 }
+
+// Function to post message on Twitter using API v1.1
+async function postOnTwitter(message) {
+  try {
+    const { data: createdTweet } = await twitterClient.v1.tweet(message);
+    console.log("Shill message posted on Twitter:", createdTweet);
+  } catch (error) {
+    console.error("Error posting on Twitter:", error.message);
+    console.error("Full error:", {
+      message: error.message,
+      code: error.code,
+      data: error.data,
+      stack: error.stack
+    });
+  }
+}
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
