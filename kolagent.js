@@ -16,7 +16,10 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client
-const twitterClient = new Client({
+const twitterClient = new Client();
+
+// Login to Twitter with all credentials
+await twitterClient.login({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
