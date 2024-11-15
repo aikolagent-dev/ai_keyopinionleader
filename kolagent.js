@@ -13,29 +13,39 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with environment variables
-const twitterClient = new Client({
-  events: true,  // Enable events
-  plugins: ['v2.tweet', 'v2.user'],  // Enable tweet functionality
-  version: '2',  // Use API v2
-  credentials: {
-    consumer: {
-      key: process.env.TWITTER_API_KEY,
-      secret: process.env.TWITTER_API_SECRET
-    },
-    token: {
-      key: process.env.TWITTER_ACCESS_TOKEN,
-      secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-    }
+const credentials = {
+  consumer: {
+    key: process.env.TWITTER_API_KEY,
+    secret: process.env.TWITTER_API_SECRET
+  },
+  token: {
+    key: process.env.TWITTER_ACCESS_TOKEN,
+    secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
   }
+};
+
+// Log the actual values (but mask most of them for security)
+console.log('Raw credentials check:', {
+  consumerKey: credentials.consumer.key ? `${credentials.consumer.key.slice(0,4)}...` : 'missing',
+  consumerSecret: credentials.consumer.secret ? `${credentials.consumer.secret.slice(0,4)}...` : 'missing',
+  tokenKey: credentials.token.key ? `${credentials.token.key.slice(0,4)}...` : 'missing',
+  tokenSecret: credentials.token.secret ? `${credentials.token.secret.slice(0,4)}...` : 'missing'
 });
 
-// Add more detailed debug logging
-console.log('Twitter client initialized with credentials:', {
-  hasConsumerKey: !!twitterClient.credentials?.consumer?.key,
-  hasConsumerSecret: !!twitterClient.credentials?.consumer?.secret,
-  hasTokenKey: !!twitterClient.credentials?.token?.key,
-  hasTokenSecret: !!twitterClient.credentials?.token?.secret,
-  plugins: twitterClient.plugins
+const twitterClient = new Client({
+  events: true,
+  plugins: ['v2.tweet', 'v2.user'],
+  version: '2',
+  credentials: credentials
+});
+
+// Add debug logging for the client itself
+console.log('Twitter client check:', {
+  hasCredentials: !!twitterClient.credentials,
+  hasConsumer: !!twitterClient.credentials?.consumer,
+  hasToken: !!twitterClient.credentials?.token,
+  plugins: twitterClient.plugins,
+  version: twitterClient.version
 });
 
 const MAX_RETRIES = 3;
