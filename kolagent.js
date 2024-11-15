@@ -16,30 +16,54 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client
-const twitterClient = new Client();
+const initializeTwitterClient = async () => {
+  try {
+    const twitterClient = new Client();
+    
+    // Ensure all credentials are strings
+    const credentials = {
+      appKey: String(process.env.TWITTER_API_KEY || ''),
+      appSecret: String(process.env.TWITTER_API_SECRET || ''),
+      accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
+      accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
+      bearerToken: String(process.env.TWITTER_BEARER_TOKEN || ''),
+      clientId: String(process.env.TWITTER_CLIENT_ID || ''),
+      clientSecret: String(process.env.TWITTER_CLIENT_SECRET || '')
+    };
 
-// Login to Twitter with all credentials
-await twitterClient.login({
-  appKey: process.env.TWITTER_API_KEY,
-  appSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-  clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET,
-  scopes: ['tweet.read', 'tweet.write', 'users.read']
-});
+    await twitterClient.login(credentials);
 
-// Debug Twitter credentials loading
-console.log('Twitter credentials loaded:', {
-  appKey: !!process.env.TWITTER_API_KEY,
-  appSecret: !!process.env.TWITTER_API_SECRET,
-  accessToken: !!process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: !!process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearerToken: !!process.env.TWITTER_BEARER_TOKEN,
-  clientId: !!process.env.TWITTER_CLIENT_ID,
-  clientSecret: !!process.env.TWITTER_CLIENT_SECRET,
-});
+    // Debug Twitter credentials loading
+    console.log('Twitter credentials loaded:', {
+      appKey: !!credentials.appKey,
+      appSecret: !!credentials.appSecret,
+      accessToken: !!credentials.accessToken,
+      accessSecret: !!credentials.accessSecret,
+      bearerToken: !!credentials.bearerToken,
+      clientId: !!credentials.clientId,
+      clientSecret: !!credentials.clientSecret
+    });
+
+    return twitterClient;
+  } catch (error) {
+    console.error('Failed to initialize Twitter client:', error);
+    throw error;
+  }
+};
+
+// Initialize clients
+let twitterClient;
+(async () => {
+  try {
+    twitterClient = await initializeTwitterClient();
+    
+    // Start the Express server after Twitter client is initialized
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
+  } catch (error) {
+    console.error('Failed to start application:', error);
+  }
+})();
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -155,6 +179,3 @@ async function generateShillMessage(contractAddress) {
     console.error("Error generating shill message:", error.message);
   }
 }
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
