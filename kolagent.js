@@ -20,14 +20,19 @@ const auth = {
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 };
 
-const twitterClient = new Client(auth);
+const twitterClient = new Client({
+  ...auth,
+  plugins: ['v2.tweet', 'v2.user'],  // Explicitly enable tweet functionality
+  api_version: '2',  // Specify API version
+});
 
 // Add more detailed debug logging
 console.log('Twitter client initialized with auth:', {
   appKeyLength: auth.appKey?.length,
   appSecretLength: auth.appSecret?.length,
   accessTokenLength: auth.accessToken?.length,
-  accessSecretLength: auth.accessSecret?.length
+  accessSecretLength: auth.accessSecret?.length,
+  plugins: twitterClient.plugins  // Log enabled plugins
 });
 
 const MAX_RETRIES = 3;
