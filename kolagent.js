@@ -216,5 +216,49 @@ async function generateShillMessage(contractAddress) {
   }
 }
 
+// Test tweet function
+async function testTweet() {
+  console.log('Starting tweet test...');
+  
+  // First verify credentials
+  console.log('Credential check:', {
+    hasApiKey: !!twitterClient.apiKey,
+    keyLength: twitterClient.apiKey?.length,
+    hasApiSecret: !!twitterClient.apiSecret,
+    secretLength: twitterClient.apiSecret?.length,
+    hasAccessToken: !!twitterClient.accessToken,
+    tokenLength: twitterClient.accessToken?.length,
+    hasAccessTokenSecret: !!twitterClient.accessTokenSecret,
+    secretTokenLength: twitterClient.accessTokenSecret?.length
+  });
+
+  try {
+    const testMessage = `Test tweet ${new Date().toISOString()}`;
+    console.log('Attempting to post:', testMessage);
+    
+    const tweet = await postTweet(testMessage);
+    console.log('Test tweet successful:', {
+      id: tweet.id,
+      text: tweet.text,
+      createdAt: tweet.created_at
+    });
+    return tweet;
+  } catch (error) {
+    console.error('Test tweet failed with error:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      data: error.response?.data
+    });
+    throw error;
+  }
+}
+
+// Run the test once when the server starts
+console.log('Running initial tweet test...');
+testTweet()
+  .then(() => console.log('Initial tweet test completed'))
+  .catch(error => console.error('Initial tweet test failed:', error.message));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`KOLAgent server running on port ${PORT}`));
