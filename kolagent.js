@@ -12,19 +12,39 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with all environment variables
+// Initialize Twitter client
 const twitterClient = new Client();
 
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    await twitterClient.login({
-      apiKey: process.env.TWITTER_API_KEY,
-      apiSecret: process.env.TWITTER_API_SECRET,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN,
-      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-      bearerToken: process.env.TWITTER_BEARER_TOKEN
-    });
+    // Validate credentials before login
+    const credentials = {
+      apiKey: String(process.env.TWITTER_API_KEY || ''),
+      apiSecret: String(process.env.TWITTER_API_SECRET || ''),
+      accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
+      accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
+      bearerToken: String(process.env.TWITTER_BEARER_TOKEN || '')
+    };
+
+    // Check if any credentials are empty
+    const missingCreds = Object.entries(credentials)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingCreds.length > 0) {
+      throw new Error(`Missing credentials: ${missingCreds.join(', ')}`);
+    }
+
+    // Log sanitized credentials check
+    console.log('Attempting login with credentials:', 
+      Object.keys(credentials).reduce((acc, key) => {
+        acc[key] = credentials[key] ? '✓' : '✗';
+        return acc;
+      }, {})
+    );
+
+    await twitterClient.login(credentials);
     console.log('Successfully logged into Twitter');
   } catch (error) {
     console.error('Failed to login to Twitter:', error);
@@ -36,15 +56,6 @@ async function initializeTwitter() {
 initializeTwitter().catch(error => {
   console.error('Failed to initialize Twitter:', error);
   process.exit(1);
-});
-
-// Safe debugging
-console.log("Credentials check:", {
-  TWITTER_API_KEY: !!process.env.TWITTER_API_KEY ? "✓" : "✗",
-  TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET ? "✓" : "✗",
-  TWITTER_ACCESS_TOKEN: !!process.env.TWITTER_ACCESS_TOKEN ? "✓" : "✗",
-  TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET ? "✓" : "✗",
-  TWITTER_BEARER_TOKEN: !!process.env.TWITTER_BEARER_TOKEN ? "✓" : "✗"
 });
 
 const MAX_RETRIES = 3;
