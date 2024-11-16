@@ -148,20 +148,13 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Draft a mysterious message for a coin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone to intrigue readers. Keep it under 280 characters, use only one hashtag, include not emojis.`,
+      `Write a funny message about ${ticker}. It should end with "CA: ${contractAddress}". Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters.`,
 
-      `Write a rude message for a coin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a blunt tone to provoke readers into action. Keep it under 280 characters, include a hashtag of ${ticker}.`,
+      `Write a derogatory message about those who still haven't bought ${ticker}. Tell them its now or never. It should end with "CA: ${contractAddress}". Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters.`,
 
-      `Write derogatory message in for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use phrases like 'just aped' or 'top blasted'. Keep it under 280 characters, include one hashtag of the ticker , and use one emoji matching ${ticker}.`,
+      `Write a cryptic message about ${ticker}. It should end with "CA: ${contractAddress}". Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters.`,
 
-      `Draft an intellectual and smart message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Known as ${ticker}.` : ""} Mention it's a paid shill but encourage DYOR. Keep it under 280 characters, use one hashtag, and add fitting emojis for ${ticker}.`,
-
-      `Write a message promoting a memecoin with contract address ${contractAddress}. It shuld start with "The ticker is ${ticker}".
-       ${ticker ? `The ticker is ${ticker}.` : ""} Use a neutral tone to highlight the token's basics. Keep it under 280 characters, use one hashtag, and include emojis that represent ${ticker}.`
+      `Write a message which only contains "The ticker is ${ticker}. CA=${contractAddress}". Use only one hashtag (#${ticker}) and no emojis. Must be under 270 characters.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
