@@ -148,20 +148,20 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
-
-      `Create a provocative message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
-
-      `Write a supportive message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
-
       `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
+       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone to intrigue readers. Keep it under 280 characters, use only one hashtag, and include relevant emojis for ${ticker}.`,
 
-      `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
-       The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
+      `Write an edgy and rude message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a blunt tone to provoke readers into action. Keep it under 280 characters, include one hashtag, and use emojis related to ${ticker}.`,
+
+      `Write a hype-filled message in crypto trader slang for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token is ${ticker}.` : ""} Use phrases like 'just aped' or 'WAGMI.' Keep it under 280 characters, include one hashtag, and use emojis matching ${ticker}.`,
+
+      `Draft an honest, self-aware promotional message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Known as ${ticker}.` : ""} Mention it's a paid shill but encourage DYOR. Keep it under 280 characters, use one hashtag, and add fitting emojis for ${ticker}.`,
+
+      `Write a straightforward and informative message promoting a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The ticker is ${ticker}.` : ""} Use a neutral tone to highlight the token's basics. Keep it under 280 characters, use one hashtag, and include emojis that represent ${ticker}.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
