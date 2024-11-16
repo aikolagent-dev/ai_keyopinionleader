@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client } = require('twitter.js');
+const { Client, ClientCredentials } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
 
@@ -15,46 +15,26 @@ const openai = new OpenAI({
 // Initialize Twitter client
 const twitterClient = new Client();
 
-// Create credentials object with explicit string conversion and validation
-const twitterCredentials = {
-  consumer_key: String(process.env.TWITTER_API_KEY || ''),
-  consumer_secret: String(process.env.TWITTER_API_SECRET || ''),
-  access_token: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-  access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
-  bearer_token: String(process.env.TWITTER_BEARER_TOKEN || ''),
-  client_id: String(process.env.TWITTER_CLIENT_ID || ''),
-  client_secret: String(process.env.TWITTER_CLIENT_SECRET || '')
-};
-
-// Validate credentials before login
-function validateCredentials(creds) {
-  const required = ['consumer_key', 'consumer_secret', 'access_token', 'access_token_secret'];
-  for (const key of required) {
-    if (!creds[key] || typeof creds[key] !== 'string' || !creds[key].trim()) {
-      throw new Error(`Missing or invalid ${key}`);
-    }
-  }
-  return true;
-}
-
-// Add login initialization with validation
+// Add login initialization
 (async function initializeTwitter() {
   try {
-    // Validate before login
-    validateCredentials(twitterCredentials);
-    
-    // Debug log (safely)
-    console.log('Credentials format:', {
-      consumer_key: 'present',
-      consumer_secret: 'present',
-      access_token: 'present',
-      access_token_secret: 'present',
-      bearer_token: 'present',
-      client_id: 'present',
-      client_secret: 'present'
+    // Create credentials using their class
+    const credentials = new ClientCredentials({
+      consumer_key: String(process.env.TWITTER_API_KEY || '').trim(),
+      consumer_secret: String(process.env.TWITTER_API_SECRET || '').trim(),
+      access_token: String(process.env.TWITTER_ACCESS_TOKEN || '').trim(),
+      access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || '').trim()
     });
 
-    await twitterClient.login(twitterCredentials);
+    // Debug log (safely)
+    console.log('Credentials check:', {
+      consumer_key: credentials.consumer_key ? 'present' : 'missing',
+      consumer_secret: credentials.consumer_secret ? 'present' : 'missing',
+      access_token: credentials.access_token ? 'present' : 'missing',
+      access_token_secret: credentials.access_token_secret ? 'present' : 'missing'
+    });
+
+    await twitterClient.login(credentials);
     console.log('Twitter client authenticated successfully');
   } catch (error) {
     console.error('Twitter authentication error:', error);
