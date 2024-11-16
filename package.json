@@ -1,21 +1,21 @@
 {
   "name": "ai-kol-agent",
   "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "build": "webpack --config webpack.config.cjs",
-    "start": "node server.js"
-  },
-  "devDependencies": {
-    "dotenv": "^16.3.1"
-  },
   "engines": {
-    "node": "18.x"
+    "node": ">=18.x <21.0.0"
   },
   "dependencies": {
-    "axios": "^1.7.7",
-    "express": "^4.21.1",
-    "openai": "^4.72.0",
-    "twitter.js": "^0.14.0"
+    "express": "^4.18.2",
+    "twitter.js": "^1.0.8",
+    "openai": "^4.0.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
