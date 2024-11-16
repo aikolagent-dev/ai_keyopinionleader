@@ -148,19 +148,19 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone to intrigue readers. Keep it under 280 characters, use only one hashtag, and include relevant emojis for ${ticker}.`,
+      `Draft a mysterious message for a coin with contract address ${contractAddress}. 
+       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone to intrigue readers. Keep it under 280 characters, use only one hashtag, include not emojis.`,
 
-      `Write an edgy and rude message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a blunt tone to provoke readers into action. Keep it under 280 characters, include one hashtag, and use emojis related to ${ticker}.`,
+      `Write a rude message for a coin with contract address ${contractAddress}. 
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a blunt tone to provoke readers into action. Keep it under 280 characters, include a hashtag of ${ticker}.`,
 
-      `Write a hype-filled message in crypto trader slang for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The token is ${ticker}.` : ""} Use phrases like 'just aped' or 'WAGMI.' Keep it under 280 characters, include one hashtag, and use emojis matching ${ticker}.`,
+      `Write derogatory message in for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token is ${ticker}.` : ""} Use phrases like 'just aped' or 'top blasted'. Keep it under 280 characters, include one hashtag of the ticker , and use one emoji matching ${ticker}.`,
 
-      `Draft an honest, self-aware promotional message for a memecoin with contract address ${contractAddress}. 
+      `Draft an intellectual and smart message for a memecoin with contract address ${contractAddress}. 
        ${ticker ? `Known as ${ticker}.` : ""} Mention it's a paid shill but encourage DYOR. Keep it under 280 characters, use one hashtag, and add fitting emojis for ${ticker}.`,
 
-      `Write a straightforward and informative message promoting a memecoin with contract address ${contractAddress}. 
+      `Write a message promoting a memecoin with contract address ${contractAddress}. It shuld start with "The ticker is ${ticker}".
        ${ticker ? `The ticker is ${ticker}.` : ""} Use a neutral tone to highlight the token's basics. Keep it under 280 characters, use one hashtag, and include emojis that represent ${ticker}.`
     ];
 
