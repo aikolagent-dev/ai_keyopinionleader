@@ -18,22 +18,29 @@ const client = new Client();
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    // Create credentials with all variables in snake_case
-    const credentials = new ClientCredentials({
-      consumer_key: String(process.env.TWITTER_API_KEY).trim(),
-      consumer_secret: String(process.env.TWITTER_API_SECRET).trim(),
-      access_token: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
-      access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim(),
-      bearer_token: String(process.env.TWITTER_BEARER_TOKEN).trim(),
-      client_id: String(process.env.TWITTER_CLIENT_ID || '').trim(),
-      client_secret: String(process.env.TWITTER_CLIENT_SECRET || '').trim()
+    // Create client with ALL credentials
+    const client = new Client({
+      consumer_key: process.env.TWITTER_API_KEY,
+      consumer_secret: process.env.TWITTER_API_SECRET,
+      access_token: process.env.TWITTER_ACCESS_TOKEN,
+      access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+      bearer_token: process.env.TWITTER_BEARER_TOKEN,
+      client_id: process.env.TWITTER_CLIENT_ID,
+      client_secret: process.env.TWITTER_CLIENT_SECRET
     });
 
-    // Debug log
-    console.log('Using credentials with properties:', Object.keys(credentials));
+    // Debug log the actual values (safely)
+    console.log('Credential check:', {
+      consumer_key: typeof process.env.TWITTER_API_KEY === 'string' && process.env.TWITTER_API_KEY.length > 0,
+      consumer_secret: typeof process.env.TWITTER_API_SECRET === 'string' && process.env.TWITTER_API_SECRET.length > 0,
+      access_token: typeof process.env.TWITTER_ACCESS_TOKEN === 'string' && process.env.TWITTER_ACCESS_TOKEN.length > 0,
+      access_token_secret: typeof process.env.TWITTER_ACCESS_TOKEN_SECRET === 'string' && process.env.TWITTER_ACCESS_TOKEN_SECRET.length > 0,
+      bearer_token: typeof process.env.TWITTER_BEARER_TOKEN === 'string' && process.env.TWITTER_BEARER_TOKEN.length > 0,
+      client_id: typeof process.env.TWITTER_CLIENT_ID === 'string' && process.env.TWITTER_CLIENT_ID.length > 0,
+      client_secret: typeof process.env.TWITTER_CLIENT_SECRET === 'string' && process.env.TWITTER_CLIENT_SECRET.length > 0
+    });
 
-    await client.login(credentials);
-    console.log('Successfully logged into Twitter');
+    console.log('Twitter client initialized');
     return client;
   } catch (error) {
     console.error('Twitter initialization error:', error);
