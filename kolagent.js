@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client, ClientCredentials } = require('twitter.js');
+const { Client } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
 
@@ -18,29 +18,26 @@ const twitterClient = new Client();
 // Add login initialization
 (async function initializeTwitter() {
   try {
-    // Log env variables presence (safely)
-    console.log('Environment variables check:', {
-      TWITTER_API_KEY: !!process.env.TWITTER_API_KEY,
-      TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET,
-      TWITTER_ACCESS_TOKEN: !!process.env.TWITTER_ACCESS_TOKEN,
-      TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
+    // Create raw credentials object
+    const credentials = {
+      consumerKey: process.env.TWITTER_API_KEY,
+      consumerSecret: process.env.TWITTER_API_SECRET,
+      accessToken: process.env.TWITTER_ACCESS_TOKEN,
+      accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+    };
+
+    // Validate all fields are strings and not empty
+    Object.entries(credentials).forEach(([key, value]) => {
+      if (typeof value !== 'string' || !value) {
+        throw new Error(`Invalid ${key}: must be non-empty string`);
+      }
     });
 
-    // Create credentials using their class with camelCase properties
-    const credentials = new ClientCredentials({
-      consumerKey: String(process.env.TWITTER_API_KEY).trim(),
-      consumerSecret: String(process.env.TWITTER_API_SECRET).trim(),
-      accessToken: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
-      accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim()
-    });
-
-    // Log credentials lengths (safely)
-    console.log('Credentials lengths:', {
-      consumerKey: credentials.consumerKey.length,
-      consumerSecret: credentials.consumerSecret.length,
-      accessToken: credentials.accessToken.length,
-      accessTokenSecret: credentials.accessTokenSecret.length
-    });
+    // Log actual values for debugging (first 4 chars only)
+    console.log('Credentials check:', Object.entries(credentials).reduce((acc, [key, value]) => {
+      acc[key] = `${value.slice(0, 4)}...${value.slice(-4)}`;
+      return acc;
+    }, {}));
 
     await twitterClient.login(credentials);
     console.log('Twitter client authenticated successfully');
