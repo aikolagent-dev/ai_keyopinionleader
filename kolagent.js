@@ -166,13 +166,14 @@ async function generateShillMessage(contractAddress) {
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
-    let retries = 2;
-    let delay = 5000;
+    let retries = 3;
+    let delay = 2000;
 
     while (retries > 0) {
       try {
         const response = await openai.chat.completions.create({
           model: 'gpt-4o',
+          model: 'gpt-4',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 100,
         });
@@ -184,7 +185,7 @@ async function generateShillMessage(contractAddress) {
         break;
       } catch (error) {
         if (error.response && error.response.status === 429 && retries > 0) {
-          console.log(`Rate limit exceeded. Retrying in ${delay / 2000} seconds...`);
+          console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           retries--;
         } else {
