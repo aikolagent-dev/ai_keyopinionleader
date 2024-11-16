@@ -12,7 +12,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const twitterClient = new Client({
+// Initialize Twitter client
+const twitterClient = new Client();
+
+// Create credentials object
+const twitterCredentials = {
   consumer_key: process.env.TWITTER_API_KEY,
   consumer_secret: process.env.TWITTER_API_SECRET,
   access_token: process.env.TWITTER_ACCESS_TOKEN,
@@ -20,16 +24,16 @@ const twitterClient = new Client({
   bearer_token: process.env.TWITTER_BEARER_TOKEN,
   client_id: process.env.TWITTER_CLIENT_ID,
   client_secret: process.env.TWITTER_CLIENT_SECRET
-});
+};
 
 // Add login initialization
 (async function initializeTwitter() {
   try {
-    await twitterClient.login();
+    await twitterClient.login(twitterCredentials);
     console.log('Twitter client authenticated successfully');
   } catch (error) {
     console.error('Twitter authentication error:', error);
-    process.exit(1); // Exit if we can't authenticate
+    process.exit(1);
   }
 })();
 
