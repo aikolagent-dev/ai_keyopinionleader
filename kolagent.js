@@ -23,14 +23,22 @@ const twitterClient = new Client({
   clientSecret: process.env.TWITTER_CLIENT_SECRET
 });
 
-// Add verification
-try {
-  await twitterClient.login();
-  console.log('Successfully logged into Twitter');
-} catch (error) {
-  console.error('Failed to login to Twitter:', error);
-  process.exit(1);
+// Wrap initialization in async function
+async function initializeTwitter() {
+  try {
+    await twitterClient.login();
+    console.log('Successfully logged into Twitter');
+  } catch (error) {
+    console.error('Failed to login to Twitter:', error);
+    process.exit(1);
+  }
 }
+
+// Call the initialization function
+initializeTwitter().catch(error => {
+  console.error('Failed to initialize Twitter:', error);
+  process.exit(1);
+});
 
 // Safe debugging
 console.log("Credentials check:", {
