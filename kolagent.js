@@ -1,12 +1,8 @@
-import dotenv from 'dotenv';
-import express from 'express';
-import { Client } from 'twitter.js';
-import OpenAI from 'openai';
-import axios from 'axios';
-import { TwitterApi } from 'twitter-api-v2';
-
-// Load environment variables
-dotenv.config();
+require('dotenv').config();
+const express = require('express');
+const { Client } = require('twitter.js');
+const OpenAI = require('openai');
+const axios = require('axios');
 
 const app = express();
 app.use(express.json());
@@ -16,24 +12,67 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Check if environment variables are available
-if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
-  console.error('Twitter credentials not found in environment');
-}
-
-// Initialize the client with your credentials
-const twitterClient = new TwitterApi({
+// Initialize Twitter client with environment variables
+const twitterClient = new Client({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
   accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  accessSecret: process.env.TWITTER_ACCESS_SECRET,
+  bearerToken: process.env.TWITTER_BEARER_TOKEN,
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
 });
 
-// Get the read-write client
-const rwClient = twitterClient.readWrite;
+// If you want to log the credentials (be careful with this in production)
+console.log("TWITTER_API_KEY:", process.env.TWITTER_API_KEY);
+console.log("TWITTER_API_SECRET:", process.env.TWITTER_API_SECRET);
+console.log("TWITTER_ACCESS_TOKEN:", process.env.TWITTER_ACCESS_TOKEN);
+console.log("TWITTER_ACCESS_SECRET:", process.env.TWITTER_ACCESS_SECRET);
+console.log("TWITTER_BEARER_TOKEN:", process.env.TWITTER_BEARER_TOKEN);
 
-// You can verify the authentication by logging the client type
-console.log('Client type:', rwClient ? 'ReadWrite' : 'ReadOnly');
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
+
+// Function to post a tweet with retry logic
+const postTweet = async (tweetContent, hashtags) => {
+  const formatTweet = (content, tags) => {
+    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
+    return `${content}\n\n${hashtagString}`.trim();
+  };
+
+  const validateTweetContent = (content, tags) => {
+    if (tags.length > 1) {
+      throw new Error('Tweet can only have one hashtag');
+    }
+    const hashtagString = tags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
+    const fullTweetLength = content.length + (tags.length > 0 ? 2 : 0) + hashtagString.length;
+    if (fullTweetLength > 280) {
+      throw new Error(`Tweet exceeds character limit (${fullTweetLength}/280)`);
+    }
+  };
+
+  const postWithRetry = async (tweet, attempt = 1) => {
+    try {
+      const response = await twitterClient.tweets.create({ text: tweet });
+      return response.id;
+    } catch (error) {
+      if (attempt < MAX_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
+        return postWithRetry(tweet, attempt + 1);
+      }
+      throw new Error(`Failed to post tweet after ${MAX_RETRIES} attempts: ${error.message}`);
+    }
+  };
+
+  try {
+    validateTweetContent(tweetContent, hashtags);
+    const fullTweet = formatTweet(tweetContent, hashtags);
+    return await postWithRetry(fullTweet);
+  } catch (error) {
+    console.error('Error in postTweet:', error.message);
+    throw error;
+  }
+};
 
 // Webhook endpoint to receive transaction data from Helius
 app.post('/webhook', async (req, res) => {
@@ -82,40 +121,53 @@ async function generateShillMessage(contractAddress) {
     const ticker = await getTokenTicker(contractAddress);
 
     const prompts = [
-      `Write a direct, concise and mysterious message for a memecoin with contract address ${contractAddress}. 
-       ${ticker ? `The ticker is ${ticker}.` : ""}. Keep it under 280 characters with one hashtag.`,
+      `Write an enthusiastic promotional message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token symbol is ${ticker}.` : ""} Encourage readers to join in on the next big opportunity in crypto. Keep it under 280 characters with one hashtag.`,
+
+      `Create a provocative message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Token symbol: ${ticker}.` : ""} Use a bold tone to urge action now. Keep it concise with one hashtag.`,
+
+      `Write a supportive message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `Known as ${ticker}.` : ""} Use a friendly tone. Highlight the potential, with one hashtag for the token symbol.`,
+
+      `Draft a mysterious message for a memecoin with contract address ${contractAddress}. 
+       ${ticker ? `The token is ${ticker}.` : ""} Use a cryptic tone. Keep it concise with one hashtag.`,
+
+      `Write an informative message promoting a memecoin with contract address ${contractAddress}. 
+       The ticker is ${ticker}. Use a straightforward tone to share why people should check it out, under 280 characters with one hashtag.`
     ];
 
-    const prompt = prompts[0];
+    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 100,
-    });
+    let retries = 3;
+    let delay = 2000;
 
-    const shillMessage = response.choices[0].message.content.trim();
-    console.log("Generated Shill Message:", shillMessage);
+    while (retries > 0) {
+      try {
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          model: 'gpt-4',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 100,
+        });
 
-    await postTweet(shillMessage, [ticker || "Crypto"]);
+        const shillMessage = response.choices[0].message.content.trim();
+        console.log("Generated Shill Message:", shillMessage);
+
+        await postTweet(shillMessage, [ticker || "Crypto"]);
+        break;
+      } catch (error) {
+        if (error.response && error.response.status === 429 && retries > 0) {
+          console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retries--;
+        } else {
+          throw error;
+        }
+      }
+    }
   } catch (error) {
     console.error("Error generating shill message:", error.message);
-  }
-}
-
-// Function to post message on Twitter using API v1.1
-async function postOnTwitter(message) {
-  try {
-    const { data: createdTweet } = await rwClient.v1.tweet(message);
-    console.log("Shill message posted on Twitter:", createdTweet);
-  } catch (error) {
-    console.error("Error posting on Twitter:", error.message);
-    console.error("Full error:", {
-      message: error.message,
-      code: error.code,
-      data: error.data,
-      stack: error.stack
-    });
   }
 }
 
