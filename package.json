@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "twitter.js": "1.0.5",
+    "twitter.js": "0.14.0",
     "openai": "^4.0.0",
     "axios": "^1.6.2",
     "dotenv": "^16.4.5"
