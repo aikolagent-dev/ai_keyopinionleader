@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client } = require('twitter.js');
+const { Client, ClientCredentials } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
 
@@ -26,13 +26,12 @@ const twitterClient = new Client();
       TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
-    // Create credentials object with explicit string casting and trimming
-    const credentials = {
-      consumer_key: `${process.env.TWITTER_API_KEY}`.trim(),
-      consumer_secret: `${process.env.TWITTER_API_SECRET}`.trim(),
-      access_token: `${process.env.TWITTER_ACCESS_TOKEN}`.trim(),
-      access_token_secret: `${process.env.TWITTER_ACCESS_TOKEN_SECRET}`.trim()
-    };
+    // Create credentials using their class
+    const credentials = new ClientCredentials();
+    credentials.consumer_key = String(process.env.TWITTER_API_KEY).trim();
+    credentials.consumer_secret = String(process.env.TWITTER_API_SECRET).trim();
+    credentials.access_token = String(process.env.TWITTER_ACCESS_TOKEN).trim();
+    credentials.access_token_secret = String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim();
 
     // Log credentials lengths (safely)
     console.log('Credentials lengths:', {
