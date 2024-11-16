@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client, ClientCredentials } = require('twitter.js');
+const { Client } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
 
@@ -18,20 +18,28 @@ const twitterClient = new Client();
 // Add login initialization
 (async function initializeTwitter() {
   try {
-    // Create credentials using their class
-    const credentials = new ClientCredentials({
-      consumer_key: String(process.env.TWITTER_API_KEY || '').trim(),
-      consumer_secret: String(process.env.TWITTER_API_SECRET || '').trim(),
-      access_token: String(process.env.TWITTER_ACCESS_TOKEN || '').trim(),
-      access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || '').trim()
+    // Log env variables presence (safely)
+    console.log('Environment variables check:', {
+      TWITTER_API_KEY: !!process.env.TWITTER_API_KEY,
+      TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET,
+      TWITTER_ACCESS_TOKEN: !!process.env.TWITTER_ACCESS_TOKEN,
+      TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
-    // Debug log (safely)
-    console.log('Credentials check:', {
-      consumer_key: credentials.consumer_key ? 'present' : 'missing',
-      consumer_secret: credentials.consumer_secret ? 'present' : 'missing',
-      access_token: credentials.access_token ? 'present' : 'missing',
-      access_token_secret: credentials.access_token_secret ? 'present' : 'missing'
+    // Create credentials object with explicit string casting and trimming
+    const credentials = {
+      consumer_key: `${process.env.TWITTER_API_KEY}`.trim(),
+      consumer_secret: `${process.env.TWITTER_API_SECRET}`.trim(),
+      access_token: `${process.env.TWITTER_ACCESS_TOKEN}`.trim(),
+      access_token_secret: `${process.env.TWITTER_ACCESS_TOKEN_SECRET}`.trim()
+    };
+
+    // Log credentials lengths (safely)
+    console.log('Credentials lengths:', {
+      consumer_key: credentials.consumer_key.length,
+      consumer_secret: credentials.consumer_secret.length,
+      access_token: credentials.access_token.length,
+      access_token_secret: credentials.access_token_secret.length
     });
 
     await twitterClient.login(credentials);
