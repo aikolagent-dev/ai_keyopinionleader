@@ -15,11 +15,13 @@ const openai = new OpenAI({
 // Initialize Twitter client
 const client = new Client();
 
+let twitterClient = null;  // Global variable to store the client
+
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
     // Create client with ALL credentials
-    const client = new Client({
+    twitterClient = new Client({
       consumer_key: process.env.TWITTER_API_KEY,
       consumer_secret: process.env.TWITTER_API_SECRET,
       access_token: process.env.TWITTER_ACCESS_TOKEN,
@@ -29,19 +31,8 @@ async function initializeTwitter() {
       client_secret: process.env.TWITTER_CLIENT_SECRET
     });
 
-    // Debug log the actual values (safely)
-    console.log('Credential check:', {
-      consumer_key: typeof process.env.TWITTER_API_KEY === 'string' && process.env.TWITTER_API_KEY.length > 0,
-      consumer_secret: typeof process.env.TWITTER_API_SECRET === 'string' && process.env.TWITTER_API_SECRET.length > 0,
-      access_token: typeof process.env.TWITTER_ACCESS_TOKEN === 'string' && process.env.TWITTER_ACCESS_TOKEN.length > 0,
-      access_token_secret: typeof process.env.TWITTER_ACCESS_TOKEN_SECRET === 'string' && process.env.TWITTER_ACCESS_TOKEN_SECRET.length > 0,
-      bearer_token: typeof process.env.TWITTER_BEARER_TOKEN === 'string' && process.env.TWITTER_BEARER_TOKEN.length > 0,
-      client_id: typeof process.env.TWITTER_CLIENT_ID === 'string' && process.env.TWITTER_CLIENT_ID.length > 0,
-      client_secret: typeof process.env.TWITTER_CLIENT_SECRET === 'string' && process.env.TWITTER_CLIENT_SECRET.length > 0
-    });
-
     console.log('Twitter client initialized');
-    return client;
+    return twitterClient;
   } catch (error) {
     console.error('Twitter initialization error:', error);
     throw error;
