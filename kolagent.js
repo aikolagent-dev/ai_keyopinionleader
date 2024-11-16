@@ -18,33 +18,32 @@ const twitterClient = new Client();
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    // Validate credentials before login
+    // Create credentials object with explicit string values
     const credentials = {
-      apiKey: String(process.env.TWITTER_API_KEY || ''),
-      apiSecret: String(process.env.TWITTER_API_SECRET || ''),
-      accessToken: String(process.env.TWITTER_ACCESS_TOKEN || ''),
-      accessSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
-      bearerToken: String(process.env.TWITTER_BEARER_TOKEN || '')
+      consumer_key: String(process.env.TWITTER_API_KEY),
+      consumer_secret: String(process.env.TWITTER_API_SECRET),
+      access_token: String(process.env.TWITTER_ACCESS_TOKEN),
+      access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET),
+      bearer_token: String(process.env.TWITTER_BEARER_TOKEN)
     };
 
-    // Check if any credentials are empty
-    const missingCreds = Object.entries(credentials)
-      .filter(([_, value]) => !value)
-      .map(([key]) => key);
+    // Debug log (safe version)
+    console.log('Credentials format:', {
+      consumer_key: credentials.consumer_key ? 'present' : 'missing',
+      consumer_secret: credentials.consumer_secret ? 'present' : 'missing',
+      access_token: credentials.access_token ? 'present' : 'missing',
+      access_token_secret: credentials.access_token_secret ? 'present' : 'missing',
+      bearer_token: credentials.bearer_token ? 'present' : 'missing'
+    });
 
-    if (missingCreds.length > 0) {
-      throw new Error(`Missing credentials: ${missingCreds.join(', ')}`);
-    }
+    // Try to login with the correct parameter names
+    await twitterClient.login({
+      consumerKey: credentials.consumer_key,
+      consumerSecret: credentials.consumer_secret,
+      accessToken: credentials.access_token,
+      accessTokenSecret: credentials.access_token_secret
+    });
 
-    // Log sanitized credentials check
-    console.log('Attempting login with credentials:', 
-      Object.keys(credentials).reduce((acc, key) => {
-        acc[key] = credentials[key] ? '✓' : '✗';
-        return acc;
-      }, {})
-    );
-
-    await twitterClient.login(credentials);
     console.log('Successfully logged into Twitter');
   } catch (error) {
     console.error('Failed to login to Twitter:', error);
