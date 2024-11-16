@@ -26,19 +26,20 @@ const twitterClient = new Client();
       TWITTER_ACCESS_TOKEN_SECRET: !!process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
-    // Create credentials using their class
-    const credentials = new ClientCredentials();
-    credentials.consumer_key = String(process.env.TWITTER_API_KEY).trim();
-    credentials.consumer_secret = String(process.env.TWITTER_API_SECRET).trim();
-    credentials.access_token = String(process.env.TWITTER_ACCESS_TOKEN).trim();
-    credentials.access_token_secret = String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim();
+    // Create credentials using their class with camelCase properties
+    const credentials = new ClientCredentials({
+      consumerKey: String(process.env.TWITTER_API_KEY).trim(),
+      consumerSecret: String(process.env.TWITTER_API_SECRET).trim(),
+      accessToken: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
+      accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim()
+    });
 
     // Log credentials lengths (safely)
     console.log('Credentials lengths:', {
-      consumer_key: credentials.consumer_key.length,
-      consumer_secret: credentials.consumer_secret.length,
-      access_token: credentials.access_token.length,
-      access_token_secret: credentials.access_token_secret.length
+      consumerKey: credentials.consumerKey.length,
+      consumerSecret: credentials.consumerSecret.length,
+      accessToken: credentials.accessToken.length,
+      accessTokenSecret: credentials.accessTokenSecret.length
     });
 
     await twitterClient.login(credentials);
