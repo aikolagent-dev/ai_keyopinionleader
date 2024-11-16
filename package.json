@@ -9,13 +9,9 @@
     "twitter.js": "^1.0.8",
     "openai": "^4.0.0",
     "axios": "^1.6.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.4.5"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
+    "start": "node server.js"
   }
 }
