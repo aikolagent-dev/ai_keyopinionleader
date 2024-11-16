@@ -12,7 +12,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Twitter client with environment variables
+// Initialize Twitter client with all environment variables
 const twitterClient = new Client({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
@@ -20,10 +20,19 @@ const twitterClient = new Client({
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   bearerToken: process.env.TWITTER_BEARER_TOKEN,
   clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET
 });
 
-// Safer debugging
+// Add verification
+try {
+  await twitterClient.login();
+  console.log('Successfully logged into Twitter');
+} catch (error) {
+  console.error('Failed to login to Twitter:', error);
+  process.exit(1);
+}
+
+// Safe debugging
 console.log("Credentials check:", {
   TWITTER_API_KEY: !!process.env.TWITTER_API_KEY ? "✓" : "✗",
   TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET ? "✓" : "✗",
