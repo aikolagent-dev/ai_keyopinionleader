@@ -18,31 +18,41 @@ const twitterClient = new Client();
 // Add login initialization
 (async function initializeTwitter() {
   try {
-    // Create raw credentials object
+    // Create credentials exactly as they expect
     const credentials = {
-      consumerKey: process.env.TWITTER_API_KEY,
-      consumerSecret: process.env.TWITTER_API_SECRET,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN,
-      accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+      consumerKey: process.env.TWITTER_API_KEY + '',  // Force string conversion
+      consumerSecret: process.env.TWITTER_API_SECRET + '',
+      accessToken: process.env.TWITTER_ACCESS_TOKEN + '',
+      accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET + '',
+      bearerToken: process.env.TWITTER_BEARER_TOKEN + ''  // Include bearer token
     };
 
-    // Validate all fields are strings and not empty
-    Object.entries(credentials).forEach(([key, value]) => {
-      if (typeof value !== 'string' || !value) {
-        throw new Error(`Invalid ${key}: must be non-empty string`);
-      }
+    // Log types for debugging
+    console.log('Credential types:', {
+      consumerKey: typeof credentials.consumerKey,
+      consumerSecret: typeof credentials.consumerSecret,
+      accessToken: typeof credentials.accessToken,
+      accessTokenSecret: typeof credentials.accessTokenSecret,
+      bearerToken: typeof credentials.bearerToken
     });
 
-    // Log actual values for debugging (first 4 chars only)
-    console.log('Credentials check:', Object.entries(credentials).reduce((acc, [key, value]) => {
-      acc[key] = `${value.slice(0, 4)}...${value.slice(-4)}`;
-      return acc;
-    }, {}));
-
-    await twitterClient.login(credentials);
+    // Try to authenticate
+    await twitterClient.login({
+      ...credentials,
+      type: 'user'  // Specify auth type
+    });
+    
     console.log('Twitter client authenticated successfully');
   } catch (error) {
     console.error('Twitter authentication error:', error);
+    // Log the actual credentials object (safely)
+    console.error('Credentials debug:', {
+      hasConsumerKey: !!credentials.consumerKey,
+      hasConsumerSecret: !!credentials.consumerSecret,
+      hasAccessToken: !!credentials.accessToken,
+      hasAccessTokenSecret: !!credentials.accessTokenSecret,
+      hasBearerToken: !!credentials.bearerToken
+    });
     process.exit(1);
   }
 })();
