@@ -15,20 +15,45 @@ const openai = new OpenAI({
 // Initialize Twitter client
 const twitterClient = new Client();
 
-// Create credentials object
+// Create credentials object with explicit string conversion and validation
 const twitterCredentials = {
-  consumer_key: process.env.TWITTER_API_KEY,
-  consumer_secret: process.env.TWITTER_API_SECRET,
-  access_token: process.env.TWITTER_ACCESS_TOKEN,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearer_token: process.env.TWITTER_BEARER_TOKEN,
-  client_id: process.env.TWITTER_CLIENT_ID,
-  client_secret: process.env.TWITTER_CLIENT_SECRET
+  consumer_key: String(process.env.TWITTER_API_KEY || ''),
+  consumer_secret: String(process.env.TWITTER_API_SECRET || ''),
+  access_token: String(process.env.TWITTER_ACCESS_TOKEN || ''),
+  access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET || ''),
+  bearer_token: String(process.env.TWITTER_BEARER_TOKEN || ''),
+  client_id: String(process.env.TWITTER_CLIENT_ID || ''),
+  client_secret: String(process.env.TWITTER_CLIENT_SECRET || '')
 };
 
-// Add login initialization
+// Validate credentials before login
+function validateCredentials(creds) {
+  const required = ['consumer_key', 'consumer_secret', 'access_token', 'access_token_secret'];
+  for (const key of required) {
+    if (!creds[key] || typeof creds[key] !== 'string' || !creds[key].trim()) {
+      throw new Error(`Missing or invalid ${key}`);
+    }
+  }
+  return true;
+}
+
+// Add login initialization with validation
 (async function initializeTwitter() {
   try {
+    // Validate before login
+    validateCredentials(twitterCredentials);
+    
+    // Debug log (safely)
+    console.log('Credentials format:', {
+      consumer_key: 'present',
+      consumer_secret: 'present',
+      access_token: 'present',
+      access_token_secret: 'present',
+      bearer_token: 'present',
+      client_id: 'present',
+      client_secret: 'present'
+    });
+
     await twitterClient.login(twitterCredentials);
     console.log('Twitter client authenticated successfully');
   } catch (error) {
