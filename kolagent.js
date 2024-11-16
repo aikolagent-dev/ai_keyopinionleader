@@ -13,20 +13,18 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client with all environment variables
-const twitterClient = new Client({
-  appKey: process.env.TWITTER_API_KEY,
-  appSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-  bearerToken: process.env.TWITTER_BEARER_TOKEN,
-  clientId: process.env.TWITTER_CLIENT_ID,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET
-});
+const twitterClient = new Client();
 
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    await twitterClient.login();
+    await twitterClient.login({
+      apiKey: process.env.TWITTER_API_KEY,
+      apiSecret: process.env.TWITTER_API_SECRET,
+      accessToken: process.env.TWITTER_ACCESS_TOKEN,
+      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+      bearerToken: process.env.TWITTER_BEARER_TOKEN
+    });
     console.log('Successfully logged into Twitter');
   } catch (error) {
     console.error('Failed to login to Twitter:', error);
