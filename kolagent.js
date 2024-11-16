@@ -18,13 +18,19 @@ const client = new Client();
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    // Create credentials using their class
+    // Create credentials with all variables in snake_case
     const credentials = new ClientCredentials({
-      consumerKey: String(process.env.TWITTER_API_KEY).trim(),
-      consumerSecret: String(process.env.TWITTER_API_SECRET).trim(),
-      accessToken: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
-      accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim()
+      consumer_key: String(process.env.TWITTER_API_KEY).trim(),
+      consumer_secret: String(process.env.TWITTER_API_SECRET).trim(),
+      access_token: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
+      access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim(),
+      bearer_token: String(process.env.TWITTER_BEARER_TOKEN).trim(),
+      client_id: String(process.env.TWITTER_CLIENT_ID || '').trim(),
+      client_secret: String(process.env.TWITTER_CLIENT_SECRET || '').trim()
     });
+
+    // Debug log
+    console.log('Using credentials with properties:', Object.keys(credentials));
 
     await client.login(credentials);
     console.log('Successfully logged into Twitter');
