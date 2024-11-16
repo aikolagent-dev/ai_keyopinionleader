@@ -18,44 +18,40 @@ const twitterClient = new Client();
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    // Create credentials object with explicit string values
+    // Force all values to be strings and trim any whitespace
     const credentials = {
-      consumer_key: String(process.env.TWITTER_API_KEY),
-      consumer_secret: String(process.env.TWITTER_API_SECRET),
-      access_token: String(process.env.TWITTER_ACCESS_TOKEN),
-      access_token_secret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET),
-      bearer_token: String(process.env.TWITTER_BEARER_TOKEN)
+      consumerKey: String(process.env.TWITTER_API_KEY).trim(),
+      consumerSecret: String(process.env.TWITTER_API_SECRET).trim(),
+      accessToken: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
+      accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim()
     };
 
-    // Debug log (safe version)
-    console.log('Credentials format:', {
-      consumer_key: credentials.consumer_key ? 'present' : 'missing',
-      consumer_secret: credentials.consumer_secret ? 'present' : 'missing',
-      access_token: credentials.access_token ? 'present' : 'missing',
-      access_token_secret: credentials.access_token_secret ? 'present' : 'missing',
-      bearer_token: credentials.bearer_token ? 'present' : 'missing'
+    // Debug: log the types and lengths
+    console.log('Credential types:', {
+      consumerKey: typeof credentials.consumerKey,
+      consumerSecret: typeof credentials.consumerSecret,
+      accessToken: typeof credentials.accessToken,
+      accessTokenSecret: typeof credentials.accessTokenSecret
     });
 
-    // Try to login with the correct parameter names
-    await twitterClient.login({
-      consumerKey: credentials.consumer_key,
-      consumerSecret: credentials.consumer_secret,
-      accessToken: credentials.access_token,
-      accessTokenSecret: credentials.access_token_secret
+    console.log('Credential lengths:', {
+      consumerKey: credentials.consumerKey.length,
+      consumerSecret: credentials.consumerSecret.length,
+      accessToken: credentials.accessToken.length,
+      accessTokenSecret: credentials.accessTokenSecret.length
     });
 
+    await twitterClient.login(credentials);
     console.log('Successfully logged into Twitter');
+    return twitterClient;
   } catch (error) {
-    console.error('Failed to login to Twitter:', error);
-    process.exit(1);
+    console.error('Twitter initialization error:', error);
+    throw error;
   }
 }
 
-// Call the initialization function
-initializeTwitter().catch(error => {
-  console.error('Failed to initialize Twitter:', error);
-  process.exit(1);
-});
+// Initialize
+initializeTwitter().catch(console.error);
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
