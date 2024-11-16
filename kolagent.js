@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client } = require('twitter.js');
+const { Client, ClientCredentials } = require('twitter.js');
 const OpenAI = require('openai');
 const axios = require('axios');
 
@@ -13,37 +13,22 @@ const openai = new OpenAI({
 });
 
 // Initialize Twitter client
-const twitterClient = new Client();
+const client = new Client();
 
 // Wrap initialization in async function
 async function initializeTwitter() {
   try {
-    // Force all values to be strings and trim any whitespace
-    const credentials = {
+    // Create credentials using their class
+    const credentials = new ClientCredentials({
       consumerKey: String(process.env.TWITTER_API_KEY).trim(),
       consumerSecret: String(process.env.TWITTER_API_SECRET).trim(),
       accessToken: String(process.env.TWITTER_ACCESS_TOKEN).trim(),
       accessTokenSecret: String(process.env.TWITTER_ACCESS_TOKEN_SECRET).trim()
-    };
-
-    // Debug: log the types and lengths
-    console.log('Credential types:', {
-      consumerKey: typeof credentials.consumerKey,
-      consumerSecret: typeof credentials.consumerSecret,
-      accessToken: typeof credentials.accessToken,
-      accessTokenSecret: typeof credentials.accessTokenSecret
     });
 
-    console.log('Credential lengths:', {
-      consumerKey: credentials.consumerKey.length,
-      consumerSecret: credentials.consumerSecret.length,
-      accessToken: credentials.accessToken.length,
-      accessTokenSecret: credentials.accessTokenSecret.length
-    });
-
-    await twitterClient.login(credentials);
+    await client.login(credentials);
     console.log('Successfully logged into Twitter');
-    return twitterClient;
+    return client;
   } catch (error) {
     console.error('Twitter initialization error:', error);
     throw error;
@@ -76,7 +61,7 @@ const postTweet = async (tweetContent, hashtags) => {
 
   const postWithRetry = async (tweet, attempt = 1) => {
     try {
-      const response = await twitterClient.tweets.create({ text: tweet });
+      const response = await client.tweets.create({ text: tweet });
       return response.id;
     } catch (error) {
       if (attempt < MAX_RETRIES) {
