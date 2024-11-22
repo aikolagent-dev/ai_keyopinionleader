@@ -146,6 +146,12 @@ async function getTokenTicker(contractAddress) {
 async function generateShillMessage(contractAddress) {
   try {
     const ticker = await getTokenTicker(contractAddress);
+    
+    // Add early return if no ticker is found
+    if (!ticker) {
+      console.log('No valid ticker found on DexScreener. Skipping tweet generation.');
+      return;
+    }
 
     const prompts = [
       `Write a funny message about ${ticker}. It should end with "CA: ${contractAddress}". Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters.`,
