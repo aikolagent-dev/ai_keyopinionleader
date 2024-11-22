@@ -110,9 +110,11 @@ app.post('/webhook', async (req, res) => {
     if (data[0]?.tokenTransfers && data[0].tokenTransfers.length > 0) {
       const lastTransfer = data[0].tokenTransfers[data[0].tokenTransfers.length - 1];
       const contractAddress = lastTransfer.mint;
-      console.log(`Token Transfer Detected for token: ${contractAddress}`);
+      const tokenAmount = parseFloat(lastTransfer.tokenAmount);
+      console.log(`Token Transfer Detected - Amount: ${tokenAmount}, Token: ${contractAddress}`);
 
-      await generateShillMessage(contractAddress);
+      // Pass the token amount to generateShillMessage
+      await generateShillMessage(contractAddress, tokenAmount);
     } else {
       console.log("No token transfers found in this transaction.");
     }
@@ -124,14 +126,25 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-async function getTokenTicker(contractAddress) {
+async function getTokenTicker(contractAddress, tokenAmount) {
   try {
     const url = `https://api.dexscreener.io/latest/dex/tokens/${contractAddress}`;
     const response = await axios.get(url);
 
     if (response.data && response.data.pairs && response.data.pairs.length > 0) {
-      const ticker = response.data.pairs[0].baseToken.symbol;
-      console.log(`Fetched Ticker: ${ticker}`);
+      const pair = response.data.pairs[0];
+      const ticker = pair.baseToken.symbol;
+      const priceUsd = parseFloat(pair.priceUsd);
+      const totalValue = priceUsd * tokenAmount;
+
+      // Check if total transaction value is above $10
+      if (totalValue < 10) {
+        console.log(`Total transaction value ($${totalValue.toFixed(2)}) is below $10 threshold. Skipping.`);
+        return null;
+      }
+
+      console.log(`Fetched Ticker: ${ticker} with price: $${priceUsd}`);
+      console.log(`Total transaction value: $${totalValue.toFixed(2)}`);
       return ticker;
     } else {
       console.log(`No data found for contract: ${contractAddress}`);
@@ -143,13 +156,13 @@ async function getTokenTicker(contractAddress) {
   }
 }
 
-async function generateShillMessage(contractAddress) {
+async function generateShillMessage(contractAddress, tokenAmount) {
   try {
-    const ticker = await getTokenTicker(contractAddress);
+    const ticker = await getTokenTicker(contractAddress, tokenAmount);
     
-    // Add early return if no ticker is found
+    // Add early return if no ticker is found or value is too low
     if (!ticker) {
-      console.log('No valid ticker found on DexScreener. Skipping tweet generation.');
+      console.log('No valid ticker found or transaction value too low. Skipping tweet generation.');
       return;
     }
 
