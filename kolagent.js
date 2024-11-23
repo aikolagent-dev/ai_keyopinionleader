@@ -138,8 +138,8 @@ async function getTokenTicker(contractAddress, tokenAmount) {
       const totalValue = priceUsd * tokenAmount;
 
       // Check if total transaction value is above $10
-      if (totalValue < 10) {
-        console.log(`Total transaction value ($${totalValue.toFixed(2)}) is below $10 threshold. Skipping.`);
+      if (totalValue < 50) {
+        console.log(`Total transaction value ($${totalValue.toFixed(2)}) is below $50 threshold. Skipping.`);
         return null;
       }
 
