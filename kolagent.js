@@ -175,8 +175,6 @@ async function generateShillMessage(contractAddress, tokenAmount) {
   
       `Write a message which only contains The ticker is ${ticker}. CA=${contractAddress}. Use only one hashtag (#${ticker}) and no emojis. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write an inspiring message about ${ticker}. The message should highlight its potential as a revolutionary token or the future of decentralized finance. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
       `Write a playful and lighthearted message about ${ticker}. Make it casual and fun, including a joke or a meme-worthy phrase. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
       `Write a FOMO-inducing message about ${ticker}. Emphasize urgency, scarcity, or a once-in-a-lifetime opportunity. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
@@ -189,11 +187,11 @@ async function generateShillMessage(contractAddress, tokenAmount) {
   
       `Write a message about ${ticker} that focuses on building a sense of community. Highlight phrases like join the family or be part of the revolution. Use an inclusive and welcoming tone. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a meme-style message about ${ticker} that’s designed to go viral. Use popular meme formats or references to trending crypto jokes (e.g., wen moon or hodl). End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `Write a meme-style message about ${ticker} thats designed to go viral. Use popular meme formats or references to trending crypto jokes (e.g., wen moon or hodl). End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
       `Write a sarcastic and slightly mocking message about people who are sleeping on ${ticker}. The tone should be playful but edgy. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a high-pressure call-to-action message about ${ticker}. Use words like don’t wait, act fast, or before it’s too late to create urgency. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `Write a high-pressure call-to-action message about ${ticker}. Use words like dont wait, act fast, or before its too late to create urgency. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
       `Write a brief educational message about ${ticker}, explaining one unique feature or benefit it offers. Keep it simple and engaging. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`
     ];
