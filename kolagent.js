@@ -167,33 +167,33 @@ async function generateShillMessage(contractAddress, tokenAmount) {
     }
 
     const prompts = [
-      `Write a funny message about ${ticker}. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a funny message about ${ticker}. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
 
-      `Write a derogatory message about those who still haven't bought ${ticker}. Tell them it's now or never. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a derogatory message about those who still haven't bought ${ticker}. Tell them it's now or never. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a cryptic message about ${ticker}. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a cryptic message about ${ticker}. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a message which only contains The ticker is ${ticker}. CA=${contractAddress}. Use only one hashtag (#${ticker}) and no emojis. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a message which only contains The ticker is ${ticker}. CA=${contractAddress}. Use only one hashtag (#${ticker}) and no emojis. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a playful and lighthearted message about ${ticker}. Make it casual and fun, including a joke or a meme-worthy phrase. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a playful and lighthearted message about ${ticker}. Make it casual and fun, including a joke or a meme-worthy phrase. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a FOMO-inducing message about ${ticker}. Emphasize urgency, scarcity, or a once-in-a-lifetime opportunity. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a FOMO-inducing message about ${ticker}. Emphasize urgency, scarcity, or a once-in-a-lifetime opportunity. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a message about ${ticker} that makes the audience feel like joining an exclusive club or being part of a special group. Use phrases like only for the visionaries or for the few who know. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a message about ${ticker} that makes the audience feel like joining an exclusive club or being part of a special group. Use phrases like only for the visionaries or for the few who know. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a message about ${ticker} using a creative comparison or metaphor, such as comparing it to a rocket, treasure chest, or golden ticket. Make it engaging and memorable. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a message about ${ticker} using a creative comparison or metaphor, such as comparing it to a rocket, treasure chest, or golden ticket. Make it engaging and memorable. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a bold and confident message about ${ticker}, making an ambitious prediction about its future (e.g., next 100x token). Keep the tone optimistic and assertive. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a bold and confident message about ${ticker}, making an ambitious prediction about its future (e.g., next 100x token). Keep the tone optimistic and assertive. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a message about ${ticker} that focuses on building a sense of community. Highlight phrases like join the family or be part of the revolution. Use an inclusive and welcoming tone. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a message about ${ticker} that focuses on building a sense of community. Highlight phrases like join the family or be part of the revolution. Use an inclusive and welcoming tone. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a meme-style message about ${ticker} thats designed to go viral. Use popular meme formats or references to trending crypto jokes (e.g., wen moon or hodl). End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a meme-style message about ${ticker} thats designed to go viral. Use popular meme formats or references to trending crypto jokes (e.g., wen moon or hodl). End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a sarcastic and slightly mocking message about people who are sleeping on ${ticker}. The tone should be playful but edgy. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a sarcastic and slightly mocking message about people who are sleeping on ${ticker}. The tone should be playful but edgy. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a high-pressure call-to-action message about ${ticker}. Use words like dont wait, act fast, or before its too late to create urgency. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      `You are a Web3 KOL. Write a high-pressure call-to-action message about ${ticker}. Use words like dont wait, act fast, or before its too late to create urgency. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
   
-      `Write a brief educational message about ${ticker}, explaining one unique feature or benefit it offers. Keep it simple and engaging. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`
+      `You are a Web3 KOL. Write a brief educational message about ${ticker}, explaining one unique feature or benefit it offers. Keep it simple and engaging. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
