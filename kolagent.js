@@ -140,69 +140,70 @@ async function getTokenTicker(contractAddress, tokenAmount) {
     if (response.data && response.data.pairs && response.data.pairs.length > 0) {
       const pair = response.data.pairs[0];
       const ticker = pair.baseToken.symbol;
+      const description = pair.baseToken.name || ticker; // Fallback to ticker if no name
       const priceUsd = parseFloat(pair.priceUsd);
       const totalValue = priceUsd * tokenAmount;
 
-      // Check if total transaction value is above $10
-      if (totalValue < 50) {
-        console.log(`Total transaction value ($${totalValue.toFixed(2)}) is below $50 threshold. Skipping.`);
+      if (totalValue < 25) {
+        console.log(`Total transaction value ($${totalValue.toFixed(2)}) is below $25 threshold. Skipping.`);
         return null;
       }
 
-      console.log(`Fetched Ticker: ${ticker} with price: $${priceUsd}`);
+      console.log(`Fetched Token: ${ticker} (${description}) with price: $${priceUsd}`);
       console.log(`Total transaction value: $${totalValue.toFixed(2)}`);
-      return ticker;
+      return { ticker, description }; // Return both ticker and description
     } else {
       console.log(`No data found for contract: ${contractAddress}`);
       return null;
     }
   } catch (error) {
-    console.error(`Error fetching token ticker for contract ${contractAddress}:`, error.message);
+    console.error(`Error fetching token data for contract ${contractAddress}:`, error.message);
     return null;
   }
 }
 
 async function generateShillMessage(contractAddress, tokenAmount) {
   try {
-    const ticker = await getTokenTicker(contractAddress, tokenAmount);
+    const tokenData = await getTokenTicker(contractAddress, tokenAmount);
     
-    // Add early return if no ticker is found or value is too low
-    if (!ticker) {
-      console.log('No valid ticker found or transaction value too low. Skipping tweet generation.');
+    if (!tokenData) {
+      console.log('No valid token data found or transaction value too low. Skipping tweet generation.');
       return;
     }
 
+    const { ticker, description } = tokenData;
+
     const prompts = [
-      `You are a memecoin enthusiast. Write a derogatory message about those who still haven't bought ${ticker}. Tell them it's now or never. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a cryptic message about ${ticker}. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
+      `You are a memecoin enthusiast. Write a derogatory message about those who still haven't bought ${ticker} (${description}). Tell them it's now or never. It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a cryptic message about ${ticker} (${description}). It should end with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and only one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
       `You are a memecoin enthusiast. Write a message which only contains The ticker is ${ticker}. CA=${contractAddress}. Use only one hashtag (#${ticker}) and no emojis. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a playful and lighthearted message about ${ticker}. Make it casual and fun, including a joke or a meme-worthy phrase. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a FOMO-inducing message about ${ticker}. Emphasize urgency, scarcity, or a once-in-a-lifetime opportunity. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a message about ${ticker} that makes the audience feel like joining an exclusive club or being part of a special group. Use phrases like only for the visionaries or for the few who know. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a message about ${ticker} using a creative comparison or metaphor, such as comparing it to a rocket, treasure chest, or golden ticket. Make it engaging and memorable. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a bold and confident message about ${ticker}, making an ambitious prediction about its future (e.g., next 100x token). Keep the tone optimistic and assertive. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a message about ${ticker} that focuses on building a sense of community. Highlight phrases like join the family or be part of the revolution. Use an inclusive and welcoming tone. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a meme-style message about ${ticker} thats designed to go viral. Use popular meme formats or references to trending crypto jokes (e.g., wen moon or hodl). End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a sarcastic and slightly mocking message about people who are sleeping on ${ticker}. The tone should be playful but edgy. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a high-pressure call-to-action message about ${ticker}. Use words like dont wait, act fast, or before its too late to create urgency. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
-  
-      `You are a memecoin enthusiast. Write a brief educational message about ${ticker}, explaining one unique feature or benefit it offers. Keep it simple and engaging. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`
+      
+      `You are a memecoin enthusiast. Write a playful and lighthearted message about ${ticker} (${description}). Make it casual and fun, including a joke or a meme-worthy phrase. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a FOMO-inducing message about ${ticker} (${description}). Emphasize urgency, scarcity, or a once-in-a-lifetime opportunity. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a message about ${ticker} (${description}) that makes the audience feel like joining an exclusive club or being part of a special group. Use phrases like only for the visionaries or for the few who know. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a message about ${ticker} (${description}) using a creative comparison or metaphor, such as comparing it to a rocket, treasure chest, or golden ticket. Make it engaging and memorable. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a bold and confident message about ${ticker} (${description}), making an ambitious prediction about its future (e.g., next 100x token). Keep the tone optimistic and assertive. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a message about ${ticker} (${description}) that focuses on building a sense of community. Highlight phrases like join the family or be part of the revolution. Use an inclusive and welcoming tone. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a meme-style message about ${ticker} (${description}) thats designed to go viral. Use popular meme formats or references to trending crypto jokes (e.g., wen moon or hodl). End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a sarcastic and slightly mocking message about people who are sleeping on ${ticker} (${description}). The tone should be playful but edgy. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a high-pressure call-to-action message about ${ticker} (${description}). Use words like dont wait, act fast, or before its too late to create urgency. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`,
+      
+      `You are a memecoin enthusiast. Write a brief educational message about ${ticker} (${description}), explaining one unique feature or benefit it offers. Keep it simple and engaging. End with CA: ${contractAddress}. Use only one hashtag (#${ticker}) and one emoji related to ${ticker}. Must be under 270 characters. Never use quotation marks.`
     ];
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
-    let retries = 3;
+    let retries = 4;
     let delay = 2000;
 
     while (retries > 0) {
